@@ -1,4 +1,5 @@
 import 'package:babyshophub/views/authentication/Login.dart';
+import 'package:babyshophub/views/common/drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -29,6 +30,7 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text("Dashboard"),
       ),
+      drawer: MyDrawer(),
       body: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 600), // Adjust as needed

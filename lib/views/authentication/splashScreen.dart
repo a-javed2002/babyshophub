@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/views/authentication/login.dart';
 import 'package:babyshophub/views/home/home.dart';
 import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -26,36 +28,18 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              height: 200,
-              width: 200,
-              child: FlareActor(
-                'assets/flare/baby_shop.flr',
-                animation: 'idle',
-              ),
-            ),
-            SizedBox(height: 20),
-            TyperAnimatedTextKit(
-              isRepeatingAnimation: false,
-              text: ['BabyShopHub'],
-              textStyle: TextStyle(
-                fontSize: 30.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 20),
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: mainColor,
+      body: content()
+    );
+  }
+  Widget content(){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Lottie.asset("assets/animations/main.json"),
+        Text("BABY SHOP HUB",style: TextStyle(color: textColor,fontSize: 20),)
+      ],
     );
   }
 }

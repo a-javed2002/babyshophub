@@ -1,3 +1,4 @@
+import 'package:babyshophub/views/OnBoarding/onBoarding.dart';
 import 'package:babyshophub/views/common/loader.dart';
 import 'package:babyshophub/views/common/pop-up.dart';
 import 'package:babyshophub/main.dart';
@@ -67,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MyHomePage()),
+        MaterialPageRoute(builder: (context) => OnBoardingScreen()),
       );
     } catch (e) {
       print('Error during login: $e');

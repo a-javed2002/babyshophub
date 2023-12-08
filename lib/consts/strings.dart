@@ -1,0 +1,20 @@
+const appname = "SAP";
+const appversion = "Version 1.0.0";
+const credits = "@abd jav";
+const email = "Email";
+const emailHint = "a.javed0202@gmail.com";
+const password = "Password";
+const passwordHint = "******";
+const forgetPassword = "I Forget My Password?";
+const retypePassword = "Re-Type Password";
+const login = "login";
+const name = "Name";
+const nameHint = "Abdullah";
+const signUp = "Sign up";
+const createNewAccount = "or, create a new Account";
+const loginWith = "Login In With";
+const privacyPolicy = "Privacy And Policy";
+const termsConditions = "Terms And Conditions";
+const haveAccount = "Already Have An Account? ";
+
+const home = "Home",categories="Categories",cart="Cart",account="Account";
