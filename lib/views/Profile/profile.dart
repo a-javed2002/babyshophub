@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyProfile extends StatelessWidget {
   const MyProfile({super.key});
@@ -8,6 +9,12 @@ class MyProfile extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
+        _setOnboardingStatus({required status}) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboardingDone', status);
+    print("set OnBoarding To False");
+  }
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -15,42 +22,6 @@ class MyProfile extends StatelessWidget {
           backgroundColor: Colors.green,
           onPressed: () {},
           child: Icon(Icons.group_add, size: screenWidth * 0.07),
-        ),
-        drawer: Drawer(
-          child: ListView(
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.purple,
-                ),
-                child: Text(
-                  'Drawer Header',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.home, size: screenWidth * 0.06),
-                title: Text('Home',
-                    style: TextStyle(fontSize: screenWidth * 0.04)),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: Icon(Icons.person, size: screenWidth * 0.06),
-                title: Text('Users',
-                    style: TextStyle(fontSize: screenWidth * 0.04)),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: Icon(Icons.logout, size: screenWidth * 0.06),
-                title: Text('Logout',
-                    style: TextStyle(fontSize: screenWidth * 0.04)),
-                onTap: () {},
-              ),
-            ],
-          ),
         ),
         appBar: AppBar(
           backgroundColor: Colors.purple,
@@ -60,7 +31,7 @@ class MyProfile extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.search),
               onPressed: () {
-                // handle search action
+                _setOnboardingStatus(status: false);
               },
             ),
             IconButton(

@@ -1,8 +1,11 @@
-import 'package:babyshophub/consts/consts.dart';
+import 'package:babyshophub/consts/colors.dart';
 import 'package:babyshophub/views/Profile/profile.dart';
 import 'package:flutter/material.dart';
 
 class MyDrawer extends StatelessWidget {
+  final List<DrawerItem> drawerItems;
+
+  MyDrawer({required this.drawerItems});
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +25,9 @@ class MyDrawer extends StatelessWidget {
                     Text(
                       "Baby Shop Hub",
                       style: TextStyle(
-                          color: const Color.fromARGB(255, 251, 249, 249),
-                          fontSize: 24),
+                        color: const Color.fromARGB(255, 251, 249, 249),
+                        fontSize: 24,
+                      ),
                     ),
                     Text(
                       "A Way To Ease",
@@ -33,7 +37,7 @@ class MyDrawer extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => MyProfile()),
                     );
@@ -42,17 +46,10 @@ class MyDrawer extends StatelessWidget {
                     alignment: Alignment.bottomRight,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: ClipOval(
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage("assets/images/profile.jpg"),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundImage:
+                            AssetImage("assets/images/profile.jpg"),
                       ),
                     ),
                   ),
@@ -60,42 +57,41 @@ class MyDrawer extends StatelessWidget {
               ],
             ),
           ),
-          ListTile(
-            title: const Text(
-              "Home",
-              style: TextStyle(fontSize: 20, color: Colors.black),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-            leading: const Icon(Icons.home),
-            horizontalTitleGap: 0,
-          ),
-          ListTile(
-            title: const Text(
-              "Settings",
-              style: TextStyle(fontSize: 20, color: Colors.black),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-            leading: const Icon(Icons.settings),
-            horizontalTitleGap: 0,
-          ),
-          ListTile(
-            // title: const Text("Logout",style: TextStyle(fontSize: 20),).onTap(() {Get.off(()=>const HomeScreen());}),
-            title: const Text(
-              "Logout",
-              style: TextStyle(fontSize: 20, color: Colors.black),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-            leading: const Icon(Icons.logout),
-            horizontalTitleGap: 0,
-          ),
+          ...drawerItems.map((item) => _buildDrawerItem(context, item)).toList(),
         ],
       ),
     );
   }
+
+  Widget _buildDrawerItem(BuildContext context, DrawerItem item) {
+    return ListTile(
+      title: Text(
+        item.title,
+        style: TextStyle(
+          fontSize: 20,
+          color: item.isSelected ? Colors.blue : Colors.black,
+        ),
+      ),
+      onTap: () {
+        item.onTap(context); // Pass the context here
+        Navigator.pop(context); // Close the drawer after tapping an item
+      },
+      leading: Icon(item.icon),
+      horizontalTitleGap: 0,
+    );
+  }
+}
+
+class DrawerItem {
+  final IconData icon;
+  final String title;
+  final Function(BuildContext) onTap;
+  final bool isSelected;
+
+  DrawerItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.isSelected = false,
+  });
 }

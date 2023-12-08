@@ -10,6 +10,8 @@ class MyHomePage extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final AuthService authService = AuthService();
 
+
+
   Future<void> _logout(BuildContext context) async {
     try {
       await _auth.signOut();

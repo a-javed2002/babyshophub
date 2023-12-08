@@ -7,6 +7,7 @@ import 'package:babyshophub/views/home/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -17,8 +18,27 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLoading = false;
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  TextEditingController _emailController = TextEditingController(text: "a@a.com");
+  TextEditingController _passwordController = TextEditingController(text: "123456");
+
+  _checkOnboardingStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool onboardingDone = prefs.getBool('onboardingDone') ?? false;
+
+    if (onboardingDone) {
+      // Onboarding is done, navigate to the home page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MyHomePage()),
+      );
+    }
+    else{
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => OnBoardingScreen()),
+      );
+    }
+  }
 
   String _validateFields() {
     String msg = '';
@@ -66,10 +86,9 @@ class _LoginPageState extends State<LoginPage> {
       print('Email: ${userData['email']}');
       print('Role: ${userData['role']}');
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => OnBoardingScreen()),
-      );
+      _checkOnboardingStatus();
+
+      
     } catch (e) {
       print('Error during login: $e');
       showDialog(
