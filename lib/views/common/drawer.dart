@@ -65,11 +65,14 @@ class MyDrawer extends StatelessWidget {
 
   Widget _buildDrawerItem(BuildContext context, DrawerItem item) {
     return ListTile(
-      title: Text(
-        item.title,
-        style: TextStyle(
-          fontSize: 20,
-          color: item.isSelected ? Colors.blue : Colors.black,
+      title: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          item.title,
+          style: TextStyle(
+            fontSize: 20,
+            color: item.isSelected ? Colors.blue : Colors.black,
+          ),
         ),
       ),
       onTap: () {

@@ -1,4 +1,5 @@
 import 'package:babyshophub/views/OnBoarding/onBoarding.dart';
+import 'package:babyshophub/views/admin/dashboard.dart';
 import 'package:babyshophub/views/common/loader.dart';
 import 'package:babyshophub/views/common/pop-up.dart';
 import 'package:babyshophub/main.dart';
@@ -18,26 +19,24 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLoading = false;
-  TextEditingController _emailController = TextEditingController(text: "a@a.com");
-  TextEditingController _passwordController = TextEditingController(text: "123456");
+  TextEditingController _emailController =
+      TextEditingController(text: "a@a.com");
+  TextEditingController _passwordController =
+      TextEditingController(text: "123456");
 
-  _checkOnboardingStatus() async {
+  void storeUserDataInSharedPreferences(Map<String, dynamic> userData) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setString('username', userData['username']);
+    prefs.setString('email', userData['email']);
+    prefs.setString('role', userData['role'].toString().toLowerCase());
+  }
+
+  Future<bool> _checkOnboardingStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool onboardingDone = prefs.getBool('onboardingDone') ?? false;
 
-    if (onboardingDone) {
-      // Onboarding is done, navigate to the home page
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MyHomePage()),
-      );
-    }
-    else{
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => OnBoardingScreen()),
-      );
-    }
+    return onboardingDone;
   }
 
   String _validateFields() {
@@ -85,10 +84,35 @@ class _LoginPageState extends State<LoginPage> {
       print('Username: ${userData['username']}');
       print('Email: ${userData['email']}');
       print('Role: ${userData['role']}');
+      storeUserDataInSharedPreferences(userData);
 
-      _checkOnboardingStatus();
+      try {
+        bool onboardingDone = await _checkOnboardingStatus();
 
-      
+        if (onboardingDone) {
+          var role = userData['role'].toString().toLowerCase();
+          if (role == 'admin') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MyDashboard()),
+            );
+          } else if (role == 'user') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MyHomePage()),
+            );
+          } else {
+            print("error page navigator");
+          }
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => OnBoardingScreen()),
+          );
+        }
+      } catch (e) {
+        print('Error during Navigation: $e');
+      }
     } catch (e) {
       print('Error during login: $e');
       showDialog(

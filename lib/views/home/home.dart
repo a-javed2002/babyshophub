@@ -1,134 +1,170 @@
-import 'package:babyshophub/views/authentication/Login.dart';
-import 'package:babyshophub/views/common/drawer.dart';
+import 'package:babyshophub/controllers/auth_controller.dart';
+import 'package:babyshophub/views/authentication/login.dart';
+import 'package:babyshophub/views/common/user-scaffold.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
-class MyHomePage extends StatelessWidget {
-  MyHomePage({Key? key});
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final AuthService authService = AuthService();
+class _MyHomePageState extends State<MyHomePage> {
+  late AuthController _controller;
 
-
-
-  Future<void> _logout(BuildContext context) async {
-    try {
-      await _auth.signOut();
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
-    } catch (e) {
-      print('Error during logout: $e');
-      // Handle logout errors here
-    }
+  @override
+  void initState() {
+    super.initState();
+    _controller = AuthController();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Dashboard"),
-      ),
-      drawer: MyDrawer(),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 600), // Adjust as needed
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: _getCrossAxisCount(context),
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.2,
+    return UserCustomScaffold(
+      appBarTitle: 'Home Page',
+      body: Column(
+        children: [
+          Container(
+            child: Center(
+              child: Text('Welcome to the Home Page'),
             ),
-            itemCount: 4,
-            itemBuilder: (context, index) {
-              return _buildTile(context, index);
-            },
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _logout(context);
-        },
-        tooltip: 'Logout',
-        child: Icon(Icons.logout),
+          SizedBox(height: 20),
+          CategorySlider(),
+        ],
       ),
     );
   }
+}
 
-  int _getCrossAxisCount(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 600) {
-      return 1; // Single column for smaller screens
-    } else {
-      return 2; // Two columns for larger screens
-    }
-  }
+class CategorySlider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('categories').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
 
-  Widget _buildTile(BuildContext context, int index) {
-    List<String> titles = ["Create Bid", "View Bids", "View Requests", "Settings"];
-    List<IconData> icons = [Icons.add, Icons.list, Icons.person, Icons.settings];
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          _handleTileClick(context, index);
-        },
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icons[index],
-                size: 48,
-                color: Theme.of(context).primaryColor,
-              ),
-              SizedBox(height: 8),
-              Text(
-                titles[index],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+        List<QueryDocumentSnapshot> categories = snapshot.data!.docs;
+
+        if (categories.isEmpty) {
+          return Center(
+            child: Text('No categories found.'),
+          );
+        }
+
+        // Only take the top 5 categories
+        List<QueryDocumentSnapshot> topCategories = categories.take(5).toList();
+
+        return CarouselSlider.builder(
+          itemCount: topCategories.length + 1, // +1 for the custom text card
+          itemBuilder: (context, index, realIndex) {
+            if (index == topCategories.length) {
+              // Last card, add custom text
+              return GestureDetector(
+                onTap: () {
+                  // Navigate to all categories screen
+                  // Add your navigation logic here
+                },
+                child: Card(
+                  color: Colors.blue,
+                  child: Center(
+                    child: Text(
+                      'All Categories',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              );
+            } else {
+              // Normal category card
+              var category = topCategories[index];
+              return Card(
+                child: Center(
+                  child: Text(category['name']),
+                ),
+              );
+            }
+          },
+          options: CarouselOptions(
+            height: 200,
+            enlargeCenterPage: true,
+            viewportFraction: 0.8,
+            aspectRatio: 16 / 9,
           ),
-        ),
+        );
+      },
+    );
+  }
+}
+
+class CustomCard extends StatelessWidget {
+  final Map<String, dynamic> category;
+
+  CustomCard({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+            child: Image.network(
+              category['imageUrl'],
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category['name'],
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  category['description'].substring(0, 20),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
-
-  void _handleTileClick(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-        break;
-      case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-        break;
-      case 2:
-        Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-        break;
-      case 3:
-        // Add navigation to the settings page
-        break;
-    }
-  }
 }
 
-class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+// Example usage:
 
-  // Check if the user is logged in
-  Future<bool> isLoggedIn() async {
-    User? user = _auth.currentUser;
-    return user != null;
-  }
-}
+// CustomCard(category: {
+//   'name': 'Category Name',
+//   'imageUrl': 'https://example.com/image.jpg',
+ 
