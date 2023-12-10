@@ -1,5 +1,6 @@
 import 'package:babyshophub/controllers/auth_controller.dart';
 import 'package:babyshophub/views/admin/category/add-category.dart';
+import 'package:babyshophub/views/admin/product/add-product.dart';
 import 'package:babyshophub/views/authentication/Login.dart';
 import 'package:babyshophub/views/common/admin-scaffold.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +53,19 @@ class _MyDashboardState extends State<MyDashboard> {
               },
               child: Text('Add cat'),
             ),
-          )
+          ),
+          Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                _controller.logout(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddProduct()),
+                );
+              },
+              child: Text('Add pro'),
+            ),
+          ),
         ],
       ),
     );

@@ -1,10 +1,21 @@
+import 'package:babyshophub/consts/consts.dart';
 import 'package:flutter/material.dart';
 
 Widget IntroPage1() {
   return Container(
-    color: Colors.amber,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          mainColor,
+          mainLightColor,
+          whiteColor,
+        ],
+      ),
+    ),
     child: Center(
-      child: Text("Page-1"),
+      child: Text("Page-1", style: TextStyle(color: Colors.white)),
     ),
   );
 }

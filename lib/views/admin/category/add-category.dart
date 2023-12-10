@@ -1,11 +1,14 @@
 import 'dart:io';
-
 import 'package:babyshophub/consts/consts.dart';
+import 'package:babyshophub/views/admin/category/show-category.dart';
 import 'package:babyshophub/views/common/admin-scaffold.dart';
+import 'package:babyshophub/views/common/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AddCategory extends StatefulWidget {
   const AddCategory({super.key});
@@ -30,7 +33,30 @@ Future<void> _getImage() async {
     setState(() {
       _selectedImage = File(pickedImage.path);
       _imageUrl = pickedImage.path; // Set _imageUrl to the path
+
+      if (kIsWeb) {
+        // For web, use network path directly
+        _imageUrl = pickedImage.path;
+      }
     });
+  }
+}
+
+Widget getImageWidget() {
+  if (_selectedImage != null && _selectedImage.path.isNotEmpty) {
+    if (kIsWeb) {
+      // For web, use Image.network
+      return Image.network(_selectedImage.path, height: 100);
+    } else {
+      // For Android/iOS, check if the file exists before using Image.file
+      if (_selectedImage.existsSync()) {
+        return Image.file(_selectedImage, height: 100);
+      } else {
+        return Container();
+      }
+    }
+  } else {
+    return Container();
   }
 }
 
@@ -79,9 +105,7 @@ Future<void> _getImage() async {
                 ),
               ),
               SizedBox(height: 16),
-              _selectedImage != null
-                  ? Image.file(_selectedImage, height: 100)
-                  : Container(),
+              getImageWidget(),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
@@ -105,38 +129,85 @@ Future<void> _getImage() async {
     }
   }
 
-  Future<void> _uploadImageToStorage() async {
-    try {
-      final storageReference = firebase_storage.FirebaseStorage.instance
-          .ref()
-          .child('category_images')
-          .child(DateTime.now().millisecondsSinceEpoch.toString());
+Future<void> _uploadImageToStorage() async {
+  try {
+    final storageReference = firebase_storage.FirebaseStorage.instance
+        .ref()
+        .child('category_images')
+        .child(DateTime.now().millisecondsSinceEpoch.toString());
 
-      final uploadTask = storageReference.putFile(_selectedImage);
+    final uploadTask = storageReference.putFile(_selectedImage);
 
-      await uploadTask.whenComplete(() async {
+    await uploadTask.whenComplete(() async {
+      if (kIsWeb) {
+        // For web, use _imageUrl directly
         _imageUrl = await storageReference.getDownloadURL();
+      } else {
+        // For non-web, set _imageUrl from the local file path
+        _imageUrl = _selectedImage.path;
+      }
+    });
+  } catch (e) {
+    print('Error uploading image to storage: $e');
+    // Handle the error as needed
+  }
+}
+
+  void _addToFirestore() async {
+    // Check if the category name already exists
+    bool isDuplicate = await _checkDuplicateCategory();
+
+    if (isDuplicate) {
+      // Handle duplicate category name
+      print('Duplicate category name');
+      ToastWidget.show(
+        message: 'Duplicate category name. Please choose a different name.',
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+      );
+    } else {
+      // Upload the image to Firebase Storage
+      await _uploadImageToStorage();
+      // Add the data to Firestore
+      FirebaseFirestore.instance.collection(categoriesCollection).add({
+        'name': _categoryName,
+        'description': _description,
+        'imageUrl': _imageUrl,
+        'timestamp': FieldValue.serverTimestamp(),
+        'last_update_date': FieldValue.serverTimestamp(),
+      }).then((value) {
+        // Handle success
+        print('Category added to Firestore');
+        _formKey.currentState!.reset();
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ShowCategory()),
+      );
+      }).catchError((error) {
+        // Handle error
+        print('Error adding category to Firestore: $error');
+        ToastWidget.show(
+          message: 'Error adding category to Firestore: $error',
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.grey,
+          textColor: Colors.white,
+        );
       });
-    } catch (e) {
-      print('Error uploading image to storage: $e');
     }
   }
 
-  void _addToFirestore() async {
-    // Upload the image to Firebase Storage
-    await _uploadImageToStorage();
+  Future<bool> _checkDuplicateCategory() async {
+    try {
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection(categoriesCollection)
+          .where('name', isEqualTo: _categoryName)
+          .get();
 
-    // Now, add the data to Firestore
-    FirebaseFirestore.instance.collection(categoriesCollection).add({
-      'name': _categoryName,
-      'description': _description,
-      'imageUrl': _imageUrl,
-    }).then((value) {
-      // Handle success
-      print('Category added to Firestore');
-    }).catchError((error) {
-      // Handle error
-      print('Error adding category to Firestore: $error');
-    });
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking duplicate category: $e');
+      return false; // Assume no duplicate if there is an error
+    }
   }
 }

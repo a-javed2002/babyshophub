@@ -91,8 +91,8 @@ class AuthController {
     prefs.remove('username');
     prefs.remove('email');
     prefs.remove('role');
-    // prefs.remove('cart');
-    // prefs.remove('wishlist');
+    prefs.remove('cart');
+    prefs.remove('wishlist');
     // Add more fields to remove as needed
   }
 }

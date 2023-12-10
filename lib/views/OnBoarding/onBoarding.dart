@@ -15,6 +15,7 @@ class OnBoardingScreen extends StatefulWidget {
 class _OnBoardingScreenState extends State<OnBoardingScreen> {
   PageController _controller = PageController();
   bool onLastPage = false;
+  int page = 1;
 
   _setOnboardingStatus({required status}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -37,6 +38,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             onPageChanged: (index) {
               setState(() {
                 onLastPage = (index == 2);
+                page = index;
               });
             },
             children: [
@@ -46,28 +48,45 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             ],
           ),
           Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: SmoothPageIndicator(
+                controller: _controller,
+                count: 3,
+              ),
+            ),
+          ),
+          Positioned(
             bottom: 20,
             left: 0,
             right: 0,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _setOnboardingStatus(status: true);
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoginPage(),
+                page == 0
+                    ? ElevatedButton(
+                        onPressed: () {
+                          _setOnboardingStatus(status: true);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LoginPage(),
+                            ),
+                          );
+                        },
+                        child: Text("Skip"),
+                      )
+                    : ElevatedButton(
+                        onPressed: () {
+                          _controller.previousPage(
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.easeOut,
+                          );
+                        },
+                        child: Text("Back"),
                       ),
-                    );
-                  },
-                  child: Text("Skip"),
-                ),
-                SmoothPageIndicator(
-                  controller: _controller,
-                  count: 3,
-                ),
                 onLastPage
                     ? ElevatedButton(
                         onPressed: () {
@@ -83,8 +102,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                       )
                     : ElevatedButton(
                         onPressed: () {
-                          if (_controller != null &&
-                              _controller.page != null &&
+                          if (_controller.page != null &&
                               _controller.page! < 2) {
                             _controller.nextPage(
                               duration: Duration(milliseconds: 500),

@@ -12,6 +12,7 @@ Future<void> main() async {
       appId: "1:352086438099:android:b8bcd2059a3d5651f7a426",
       projectId: "babyshophub-c9c2f",
       messagingSenderId: "352086438099",
+      storageBucket: "babyshophub-c9c2f.appspot.com"
     ),
   );
   runApp( MyApp());

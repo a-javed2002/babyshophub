@@ -1,3 +1,4 @@
+import 'package:babyshophub/consts/colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomLoader extends StatelessWidget {
@@ -8,7 +9,7 @@ class CustomLoader extends StatelessWidget {
         width: 80.0,
         height: 80.0,
         decoration: BoxDecoration(
-          color: Color.fromARGB(133, 204, 35, 246),
+          color: mainColor,
           borderRadius: BorderRadius.circular(10.0),
         ),
         child: Column(
