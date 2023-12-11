@@ -1,3 +1,4 @@
+import 'package:babyshophub/consts/colors.dart';
 import 'package:babyshophub/views/authentication/login.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +16,7 @@ class OnBoardingScreen extends StatefulWidget {
 class _OnBoardingScreenState extends State<OnBoardingScreen> {
   PageController _controller = PageController();
   bool onLastPage = false;
-  int page = 1;
+  int page = 0;
 
   _setOnboardingStatus({required status}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -59,7 +60,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             ),
           ),
           Positioned(
-            bottom: 20,
+            bottom: 0,
             left: 0,
             right: 0,
             child: Row(
@@ -76,7 +77,15 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                             ),
                           );
                         },
-                        child: Text("Skip"),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0), // Add padding
+                          child: Text(
+                            "Skip",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold, // Make the text bold
+                            ),
+                          ),
+                        ),
                       )
                     : ElevatedButton(
                         onPressed: () {
@@ -98,7 +107,25 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                             ),
                           );
                         },
-                        child: Text("Done"),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            "Done",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold, // Make the text bold
+                              color: whiteColor
+                            ),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          primary: mainColor, // Set background color
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(
+                                  10.0), // Add top-left border radius
+                            ),
+                          ),
+                        ),
                       )
                     : ElevatedButton(
                         onPressed: () {
@@ -110,7 +137,25 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                             );
                           }
                         },
-                        child: Text("Next"),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            "Next",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold, // Make the text bold
+                              color: whiteColor
+                            ),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          primary: mainColor, // Set background color
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(
+                                  10.0), // Add top-left border radius
+                            ),
+                          ),
+                        ),
                       ),
               ],
             ),
