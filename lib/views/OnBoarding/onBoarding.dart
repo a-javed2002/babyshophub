@@ -78,13 +78,24 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                           );
                         },
                         child: Padding(
-                          padding: const EdgeInsets.all(8.0), // Add padding
+                          padding: const EdgeInsets.all(16.0),
                           child: Text(
                             "Skip",
                             style: TextStyle(
                               fontWeight: FontWeight.bold, // Make the text bold
+                              color: mainColor
                             ),
                           ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.transparent, // Set background color
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(
+                                  20.0), // Add top-left border radius
+                            ),
+                          ),
+                          // side: BorderSide(color: mainColor, width: 2.0),
                         ),
                       )
                     : ElevatedButton(
@@ -94,7 +105,26 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                             curve: Curves.easeOut,
                           );
                         },
-                        child: Text("Back"),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            "Back",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold, // Make the text bold
+                              color: mainColor
+                            ),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.transparent, // Set background color
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(
+                                  20.0), // Add top-left border radius
+                            ),
+                          ),
+                          // side: BorderSide(color: mainColor, width: 2.0),
+                        ),
                       ),
                 onLastPage
                     ? ElevatedButton(
@@ -122,7 +152,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(
-                                  10.0), // Add top-left border radius
+                                  20.0), // Add top-left border radius
                             ),
                           ),
                         ),
@@ -152,7 +182,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(
-                                  10.0), // Add top-left border radius
+                                  20.0), // Add top-left border radius
                             ),
                           ),
                         ),

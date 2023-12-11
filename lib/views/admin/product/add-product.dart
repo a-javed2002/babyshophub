@@ -96,7 +96,7 @@ class _AddProductState extends State<AddProduct> {
                 value: _selectedCategoryId,
                 items: _categories.map((category) {
                   return DropdownMenuItem(
-                    value: category['id'],
+                    value: category['id'].toString(),
                     child: Text(category['name']),
                   );
                 }).toList(),

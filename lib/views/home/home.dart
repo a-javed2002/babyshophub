@@ -91,8 +91,47 @@ class CategorySlider extends StatelessWidget {
               // Normal category card
               var category = topCategories[index];
               return Card(
-                child: Center(
-                  child: Text(category['name']),
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(15)),
+                      child: Image.asset(
+                        category['imageUrl'],
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            category['name'],
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            category['description'].substring(0, 20),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               );
             }
@@ -110,7 +149,7 @@ class CategorySlider extends StatelessWidget {
 }
 
 class CustomCard extends StatelessWidget {
-  final Map<String, dynamic> category;
+  final dynamic category;
 
   CustomCard({required this.category});
 
@@ -126,7 +165,7 @@ class CustomCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-            child: Image.network(
+            child: Image.asset(
               category['imageUrl'],
               height: 150,
               width: double.infinity,
