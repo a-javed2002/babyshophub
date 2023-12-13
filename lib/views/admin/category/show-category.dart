@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/views/common/admin-scaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -33,6 +35,24 @@ class ShowCategory extends StatelessWidget {
               return ListTile(
                 title: Text(category['name']),
                 subtitle: Text(category['description']),
+                leading: FutureBuilder<String>(
+                  future: _getImageUrl(category['imageUrl']),
+                  builder: (context, imageUrlSnapshot) {
+                    if (imageUrlSnapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    }
+
+                    if (imageUrlSnapshot.hasError) {
+                      return Text('Error: ${imageUrlSnapshot.error}');
+                    }
+
+                    final imageUrl = imageUrlSnapshot.data ?? '';
+                    return CircleAvatar(
+                      backgroundImage: NetworkImage(imageUrl),
+                      radius: 25,
+                    );
+                  },
+                ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -61,28 +81,81 @@ class ShowCategory extends StatelessWidget {
     );
   }
 
-  Future<void> _deleteCategory(BuildContext context, QueryDocumentSnapshot category) async {
-    try {
-      // Delete associated images from Firebase Storage
-      await _deleteCategoryImages(category['imageUrl']);
-      
-      // Delete the category from Firestore
-      await FirebaseFirestore.instance.collection(categoriesCollection).doc(category.id).delete();
-      
-      print('Category deleted successfully');
-    } catch (e) {
-      print('Error deleting category: $e');
+Future<String> _getImageUrl(dynamic imageUrlData) async {
+  if (imageUrlData is List<String> && imageUrlData.isNotEmpty) {
+    return imageUrlData[0];
+  } else if (imageUrlData is String && imageUrlData.isNotEmpty) {
+    return imageUrlData;
+  } else {
+    // If no category image exists, return a random image from assets
+    final random = Random();
+    final randomImageIndex = random.nextInt(3) + 1; // Assuming you have three random images in assets
+
+    return 'assets/images/profile.jpg';
+  }
+}
+
+
+    Future<void> _deleteCategory(BuildContext context, QueryDocumentSnapshot category) async {
+    bool confirmDelete = await _showDeleteConfirmationDialog(context);
+    if (confirmDelete) {
+      try {
+        // Delete associated images from Firebase Storage
+        await _deleteCategoryImages(category['imageUrl']);
+        
+        // Delete the category from Firestore
+        await FirebaseFirestore.instance.collection(categoriesCollection).doc(category.id).delete();
+        
+        print('Category deleted successfully');
+      } catch (e) {
+        print('Error deleting category: $e');
+      }
     }
   }
 
-  Future<void> _deleteCategoryImages(List<String> imageUrls) async {
+  Future<bool> _showDeleteConfirmationDialog(BuildContext context) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Confirm Delete"),
+          content: Text("Are you sure you want to delete this category?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteCategoryImages(dynamic imageUrlData) async {
     try {
-      for (String imageUrl in imageUrls) {
-        final firebase_storage.Reference storageReference = firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
-        await storageReference.delete();
+      if (imageUrlData is List<String>) {
+        for (String imageUrl in imageUrlData) {
+          await _deleteImage(imageUrl);
+        }
+      } else if (imageUrlData is String) {
+        await _deleteImage(imageUrlData);
       }
     } catch (e) {
       print('Error deleting category images: $e');
+    }
+  }
+
+  Future<void> _deleteImage(String imageUrl) async {
+    try {
+      final firebase_storage.Reference storageReference = firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
+      await storageReference.delete();
+      print('Image deleted successfully: $imageUrl');
+    } catch (e) {
+      print('Error deleting image: $e');
     }
   }
 }

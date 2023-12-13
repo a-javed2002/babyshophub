@@ -24,7 +24,7 @@ class _ShowProductState extends State<ShowProduct> {
   Future<void> _loadProducts() async {
     try {
       final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection(categoriesCollection)
+          .collection(productsCollection) // Adjust the collection name as needed
           .get();
 
       setState(() {
@@ -56,6 +56,24 @@ class _ShowProductState extends State<ShowProduct> {
                   return ListTile(
                     title: Text(product['name']),
                     subtitle: Text(product['description']),
+                    leading: FutureBuilder<String>(
+                      future: _getImageUrl(product['imageUrls']),
+                      builder: (context, imageUrlSnapshot) {
+                        if (imageUrlSnapshot.connectionState == ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        }
+
+                        if (imageUrlSnapshot.hasError) {
+                          return Text('Error: ${imageUrlSnapshot.error}');
+                        }
+
+                        final imageUrl = imageUrlSnapshot.data ?? '';
+                        return CircleAvatar(
+                          backgroundImage: NetworkImage(imageUrl),
+                          radius: 25,
+                        );
+                      },
+                    ),
                     // You can add more information here like price, quantity, etc.
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -71,7 +89,7 @@ class _ShowProductState extends State<ShowProduct> {
                           icon: Icon(Icons.delete),
                           onPressed: () {
                             // Handle delete action
-                            _deleteProduct(product['id'], product['imageUrls']);
+                            _showDeleteConfirmationDialog(product['id'], product['imageUrls']);
                           },
                         ),
                       ],
@@ -86,40 +104,78 @@ class _ShowProductState extends State<ShowProduct> {
     );
   }
 
-Future<void> _deleteProduct(String productId, List<String> imageUrls) async {
-  try {
-    // Delete product images from Firebase Storage
-    for (final imageUrl in imageUrls) {
-      final storageReference =
-          firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
-      await storageReference.delete();
+  Future<String> _getImageUrl(List<String> imageUrls) async {
+    if (imageUrls.isNotEmpty) {
+      return imageUrls[0];
+    } else {
+      // If no product image exists, return a default image or handle as needed
+      return 'assets/images/default_product_image.jpg';
     }
-
-    // Delete the product document from Firestore
-    await FirebaseFirestore.instance
-        .collection(categoriesCollection)
-        .doc(productId)
-        .delete();
-
-    // Reload products after deletion
-    _loadProducts();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Product and images deleted successfully'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  } catch (e) {
-    print('Error deleting product and images: $e');
-    // Handle the error as needed
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error deleting product and images: $e'),
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
-}
 
+  Future<void> _showDeleteConfirmationDialog(String productId, List<String> imageUrls) async {
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Confirm Delete"),
+          content: Text("Are you sure you want to delete this product?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+                _deleteProduct(productId, imageUrls);
+              },
+              child: Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmDelete == true) {
+      // User confirmed deletion, proceed with _deleteProduct
+      _deleteProduct(productId, imageUrls);
+    }
+  }
+
+  Future<void> _deleteProduct(String productId, List<String> imageUrls) async {
+    try {
+      // Delete product images from Firebase Storage
+      for (final imageUrl in imageUrls) {
+        final storageReference =
+            firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
+        await storageReference.delete();
+      }
+
+      // Delete the product document from Firestore
+      await FirebaseFirestore.instance
+          .collection(productsCollection) // Adjust the collection name as needed
+          .doc(productId)
+          .delete();
+
+      // Reload products after deletion
+      _loadProducts();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Product and images deleted successfully'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error deleting product and images: $e');
+      // Handle the error as needed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting product and images: $e'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 }
