@@ -1,4 +1,6 @@
 import 'package:babyshophub/controllers/auth_controller.dart';
+import 'package:babyshophub/views/Product/cart.dart';
+import 'package:babyshophub/views/Product/category.dart';
 import 'package:babyshophub/views/authentication/login.dart';
 import 'package:babyshophub/views/common/user-scaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,6 +34,18 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           SizedBox(height: 20),
           CategorySlider(),
+          ElevatedButton(onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CategoryShow()),
+            );
+          }, child: Text("ALL CATEGORIES")),
+          ElevatedButton(onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CartScreen()),
+            );
+          }, child: Text("CART")),
         ],
       ),
     );

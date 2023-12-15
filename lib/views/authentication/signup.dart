@@ -64,6 +64,8 @@ class _SignUpPageState extends State<SignUpPage> {
         'cnic': _cnic,
         'email': _email,
         'role': _selectedRole,
+        'wishlist': [],
+        'orders': [],
         'timestamp': FieldValue.serverTimestamp(),
       });
 

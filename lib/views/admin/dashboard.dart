@@ -24,6 +24,7 @@ class _MyDashboardState extends State<MyDashboard> {
   @override
   Widget build(BuildContext context) {
     return AdminCustomScaffold(
+      context: context,
       appBarTitle: 'Dashboarde',
       body: Column(
         children: [

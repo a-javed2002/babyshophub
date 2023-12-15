@@ -11,19 +11,43 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-class AddCategory extends StatefulWidget {
-  const AddCategory({super.key});
+class EditCategory extends StatefulWidget {
+  final String categoryId;
+
+  const EditCategory({Key? key, required this.categoryId}) : super(key: key);
 
   @override
-  State<AddCategory> createState() => _AddCategoryState();
+  State<EditCategory> createState() => _EditCategoryState();
 }
 
-class _AddCategoryState extends State<AddCategory> {
+class _EditCategoryState extends State<EditCategory> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late String _categoryName;
   late String _description;
-  FilePickerResult? result;
+  late FilePickerResult? result;
   late File _selectedImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategoryDetails();
+  }
+
+  Future<void> _loadCategoryDetails() async {
+    try {
+      final DocumentSnapshot categoryDoc = await FirebaseFirestore.instance
+          .collection(categoriesCollection)
+          .doc(widget.categoryId)
+          .get();
+
+      setState(() {
+        _categoryName = categoryDoc['name'];
+        _description = categoryDoc['description'];
+      });
+    } catch (e) {
+      print('Error loading category details: $e');
+    }
+  }
 
   Future<void> _getImage() async {
     try {
@@ -72,7 +96,7 @@ class _AddCategoryState extends State<AddCategory> {
   Widget build(BuildContext context) {
     return AdminCustomScaffold(
       context: context,
-      appBarTitle: "Add Category",
+      appBarTitle: "Edit Category",
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -81,6 +105,7 @@ class _AddCategoryState extends State<AddCategory> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormField(
+                initialValue: _categoryName,
                 decoration: InputDecoration(labelText: 'Category Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -92,6 +117,7 @@ class _AddCategoryState extends State<AddCategory> {
               ),
               SizedBox(height: 16),
               TextFormField(
+                initialValue: _description,
                 decoration: InputDecoration(labelText: 'Description'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -137,9 +163,52 @@ class _AddCategoryState extends State<AddCategory> {
   }
 
   void _submitForm() {
-    if (_formKey.currentState!.validate() && result != null) {
+    if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      _addToFirestore();
+      _updateFirestore();
+    }
+  }
+
+  Future<void> _updateFirestore() async {
+    try {
+      String? imageUrl;
+      // Check if a new image is selected
+      if (result != null && result!.files.isNotEmpty) {
+        imageUrl = await _uploadImageToStorage();
+        // Delete the previous image from storage
+        await _deleteImageFromStorage();
+      }
+
+      // Update the category document in Firestore
+      await FirebaseFirestore.instance
+          .collection(categoriesCollection)
+          .doc(widget.categoryId)
+          .update({
+        'name': _categoryName,
+        'description': _description,
+        'imageUrl': imageUrl,
+        'last_update_date': FieldValue.serverTimestamp(),
+      });
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ShowCategory()),
+      );
+
+      Fluttertoast.showToast(
+        msg: 'Category updated successfully',
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+    } catch (e) {
+      print('Error updating category: $e');
+      ToastWidget.show(
+        message: 'Error updating category: $e',
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     }
   }
 
@@ -149,20 +218,17 @@ class _AddCategoryState extends State<AddCategory> {
       String uniqueFileName =
           '$timestamp${result!.files.single.name.replaceAll(" ", "_")}';
 
-      if (result != null && result!.files.isNotEmpty) {
-        await Firebase.initializeApp();
-        firebase_storage.Reference storageReference = firebase_storage
-            .FirebaseStorage.instance
-            .ref()
-            .child("category_images/${uniqueFileName}");
+      await Firebase.initializeApp();
+      firebase_storage.Reference storageReference = firebase_storage
+          .FirebaseStorage.instance
+          .ref()
+          .child("category_images/${uniqueFileName}");
 
-        await storageReference.putData(result!.files.single.bytes!);
+      await storageReference.putData(result!.files.single.bytes!);
 
-        return await storageReference.getDownloadURL();
-      }
+      return await storageReference.getDownloadURL();
     } catch (e) {
       print('Error uploading image to storage: $e');
-      // Provide a user-friendly error message
       ToastWidget.show(
         message: 'Error uploading image. Please try again.',
         gravity: ToastGravity.CENTER,
@@ -173,60 +239,25 @@ class _AddCategoryState extends State<AddCategory> {
     }
   }
 
-  void _addToFirestore() async {
-    bool isDuplicate = await _checkDuplicateCategory();
-
-    if (isDuplicate) {
-      print('Duplicate category name');
-      ToastWidget.show(
-        message: 'Duplicate category name. Please choose a different name.',
-        gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.grey,
-        textColor: Colors.white,
-      );
-    } else {
-      // Get the download URL from the image upload
-      String? imageUrl = await _uploadImageToStorage();
-
-      if (imageUrl != null) {
-        // Proceed with Firestore document creation
-        FirebaseFirestore.instance.collection(categoriesCollection).add({
-          'name': _categoryName,
-          'description': _description,
-          'imageUrl': imageUrl,
-          'timestamp': FieldValue.serverTimestamp(),
-          'last_update_date': FieldValue.serverTimestamp(),
-        }).then((value) {
-          print('Category added to Firestore');
-          _formKey.currentState!.reset();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ShowCategory()),
-          );
-        }).catchError((error) {
-          print('Error adding category to Firestore: $error');
-          ToastWidget.show(
-            message: 'Error adding category to Firestore: $error',
-            gravity: ToastGravity.CENTER,
-            backgroundColor: Colors.grey,
-            textColor: Colors.white,
-          );
-        });
-      }
-    }
-  }
-
-  Future<bool> _checkDuplicateCategory() async {
+  Future<void> _deleteImageFromStorage() async {
     try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      final DocumentSnapshot categoryDoc = await FirebaseFirestore.instance
           .collection(categoriesCollection)
-          .where('name', isEqualTo: _categoryName)
+          .doc(widget.categoryId)
           .get();
 
-      return querySnapshot.docs.isNotEmpty;
+      String? previousImageUrl = categoryDoc['imageUrl'];
+      if (previousImageUrl != null) {
+        firebase_storage.Reference storageReference =
+            firebase_storage.FirebaseStorage.instance.refFromURL(
+                previousImageUrl);
+
+        await storageReference.delete();
+
+        print('Previous image deleted successfully: $previousImageUrl');
+      }
     } catch (e) {
-      print('Error checking duplicate category: $e');
-      return false;
+      print('Error deleting previous image: $e');
     }
   }
 }

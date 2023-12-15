@@ -27,7 +27,7 @@ class ProductGrid extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('products')
-          .where('categoryId', isEqualTo: categoryId)
+          .where('category_id_fk', isEqualTo: categoryId)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {

@@ -12,10 +12,14 @@ import 'package:flutter/material.dart';
 class AdminCustomScaffold extends StatefulWidget {
   final Widget body;
   final String appBarTitle;
+  final bool showDrawer;
+  final BuildContext context;
 
   AdminCustomScaffold({
     required this.body,
     required this.appBarTitle,
+    this.showDrawer = true,
+    required this.context,
   });
 
   @override
@@ -50,6 +54,7 @@ class _AdminCustomScaffoldState extends State<AdminCustomScaffold> {
               context,
               MaterialPageRoute(builder: (context) => AddCategory()),
             );
+            Navigator.pop(context);
           }),
       DrawerItem(
           icon: Icons.settings,
@@ -60,6 +65,7 @@ class _AdminCustomScaffoldState extends State<AdminCustomScaffold> {
               context,
               MaterialPageRoute(builder: (context) => ShowCategory()),
             );
+            Navigator.pop(context);
           }),
       DrawerItem(
           icon: Icons.settings,
@@ -70,6 +76,7 @@ class _AdminCustomScaffoldState extends State<AdminCustomScaffold> {
               context,
               MaterialPageRoute(builder: (context) => AddProduct()),
             );
+            Navigator.pop(context);
           }),
       DrawerItem(
           icon: Icons.settings,
@@ -80,6 +87,7 @@ class _AdminCustomScaffoldState extends State<AdminCustomScaffold> {
               context,
               MaterialPageRoute(builder: (context) => ShowProduct()),
             );
+            Navigator.pop(context);
           }),
       DrawerItem(
           icon: Icons.settings,
@@ -103,7 +111,7 @@ class _AdminCustomScaffoldState extends State<AdminCustomScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    List<DrawerItem> drawerItems = _buildDrawerItems(context);
+    List<DrawerItem> drawerItems = _buildDrawerItems(widget.context);
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -119,7 +127,7 @@ class _AdminCustomScaffoldState extends State<AdminCustomScaffold> {
           },
         ],
       ),
-      drawer: MyDrawer(drawerItems: drawerItems),
+      drawer: widget.showDrawer ? MyDrawer(drawerItems: drawerItems) : null,
       body: widget.body,
     );
   }

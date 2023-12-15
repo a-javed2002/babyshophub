@@ -89,4 +89,85 @@ class CartController {
       return [];
     }
   }
+
+  // Increment the quantity of a product in the cart
+  Future<bool> incrementQuantity(String productId) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      if (prefs.containsKey(cartKey)) {
+        List<Map<String, dynamic>> cartData = List<Map<String, dynamic>>.from(
+            json.decode(prefs.getString(cartKey)!));
+
+        // Find the product in the cart
+        int existingIndex =
+            cartData.indexWhere((item) => item['productId'] == productId);
+
+        if (existingIndex != -1) {
+          // Increment the quantity
+          cartData[existingIndex]['quantity'] += 1;
+
+          // Save updated cart data to SharedPreferences
+          prefs.setString(cartKey, json.encode(cartData));
+        }
+      }
+
+      return true;
+    } catch (e) {
+      print('Error incrementing quantity: $e');
+      return false;
+    }
+  }
+
+  // Decrement the quantity of a product in the cart
+  Future<bool> decrementQuantity(String productId) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      if (prefs.containsKey(cartKey)) {
+        List<Map<String, dynamic>> cartData = List<Map<String, dynamic>>.from(
+            json.decode(prefs.getString(cartKey)!));
+
+        // Find the product in the cart
+        int existingIndex =
+            cartData.indexWhere((item) => item['productId'] == productId);
+
+        if (existingIndex != -1) {
+          // Decrement the quantity, ensuring it doesn't go below 1
+          cartData[existingIndex]['quantity'] =
+              (cartData[existingIndex]['quantity'] > 1)
+                  ? cartData[existingIndex]['quantity'] - 1
+                  : 1;
+
+          // Save updated cart data to SharedPreferences
+          prefs.setString(cartKey, json.encode(cartData));
+        }
+      }
+
+      return true;
+    } catch (e) {
+      print('Error decrementing quantity: $e');
+      return false;
+    }
+  }
+
+  // Check if a product is present in the cart by productId
+  Future<bool> isProductInCart(String productId) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      if (prefs.containsKey(cartKey)) {
+        List<Map<String, dynamic>> cartData = List<Map<String, dynamic>>.from(
+            json.decode(prefs.getString(cartKey)!));
+
+        // Check if the product is in the cart
+        return cartData.any((item) => item['productId'] == productId);
+      }
+
+      return false;
+    } catch (e) {
+      print('Error checking if product is in cart: $e');
+      return false;
+    }
+  }
 }

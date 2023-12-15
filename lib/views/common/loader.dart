@@ -9,7 +9,7 @@ class CustomLoader extends StatelessWidget {
         width: 80.0,
         height: 80.0,
         decoration: BoxDecoration(
-          color: mainColor,
+          // color: mainColor,
           borderRadius: BorderRadius.circular(10.0),
         ),
         child: Column(
@@ -17,12 +17,12 @@ class CustomLoader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(mainColor),
             ),
             SizedBox(height: 10.0),
             Text(
               'Loading...',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: mainColor),
             ),
           ],
         ),

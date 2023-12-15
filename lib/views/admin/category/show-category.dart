@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:babyshophub/consts/consts.dart';
+import 'package:babyshophub/views/admin/category/edit-category.dart';
 import 'package:babyshophub/views/common/admin-scaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -10,9 +11,12 @@ class ShowCategory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdminCustomScaffold(
+      context: context,
       appBarTitle: "Manage Categories",
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection(categoriesCollection).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection(categoriesCollection)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();
@@ -23,7 +27,7 @@ class ShowCategory extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Text('No categories found.');
+            return Center(child: Text('No categories found.'));
           }
 
           List<QueryDocumentSnapshot> categories = snapshot.data!.docs;
@@ -38,17 +42,26 @@ class ShowCategory extends StatelessWidget {
                 leading: FutureBuilder<String>(
                   future: _getImageUrl(category['imageUrl']),
                   builder: (context, imageUrlSnapshot) {
-                    if (imageUrlSnapshot.connectionState == ConnectionState.waiting) {
+                    if (imageUrlSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return CircularProgressIndicator();
                     }
 
                     if (imageUrlSnapshot.hasError) {
-                      return Text('Error: ${imageUrlSnapshot.error}');
+                      print(
+                          'Error getting image URL: ${imageUrlSnapshot.error}');
+                      return Text('Error loading image');
                     }
 
                     final imageUrl = imageUrlSnapshot.data ?? '';
                     return CircleAvatar(
-                      backgroundImage: NetworkImage(imageUrl),
+                      backgroundImage: Image.network(
+                        imageUrl,
+                        errorBuilder: (context, error, stackTrace) {
+                          print('Error loading image: $error');
+                          return Text('Error loading image');
+                        },
+                      ).image,
                       radius: 25,
                     );
                   },
@@ -59,9 +72,11 @@ class ShowCategory extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
-                        // Navigate to a screen for editing the category
-                        // You can pass the category data to the editing screen
-                        // Example: Navigator.push(context, MaterialPageRoute(builder: (context) => EditCategoryScreen(category)));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => EditCategory(categoryId: category.id,)),
+                        );
                       },
                     ),
                     IconButton(
@@ -81,31 +96,35 @@ class ShowCategory extends StatelessWidget {
     );
   }
 
-Future<String> _getImageUrl(dynamic imageUrlData) async {
-  if (imageUrlData is List<String> && imageUrlData.isNotEmpty) {
-    return imageUrlData[0];
-  } else if (imageUrlData is String && imageUrlData.isNotEmpty) {
-    return imageUrlData;
-  } else {
-    // If no category image exists, return a random image from assets
-    final random = Random();
-    final randomImageIndex = random.nextInt(3) + 1; // Assuming you have three random images in assets
+  Future<String> _getImageUrl(dynamic imageUrlData) async {
+    if (imageUrlData is List<String> && imageUrlData.isNotEmpty) {
+      return imageUrlData[0];
+    } else if (imageUrlData is String && imageUrlData.isNotEmpty) {
+      return imageUrlData;
+    } else {
+      // If no category image exists, return a random image from assets
+      final random = Random();
+      final randomImageIndex = random.nextInt(3) +
+          1; // Assuming you have three random images in assets
 
-    return 'assets/images/profile.jpg';
+      return 'assets/images/profile.jpg';
+    }
   }
-}
 
-
-    Future<void> _deleteCategory(BuildContext context, QueryDocumentSnapshot category) async {
+  Future<void> _deleteCategory(
+      BuildContext context, QueryDocumentSnapshot category) async {
     bool confirmDelete = await _showDeleteConfirmationDialog(context);
     if (confirmDelete) {
       try {
         // Delete associated images from Firebase Storage
         await _deleteCategoryImages(category['imageUrl']);
-        
+
         // Delete the category from Firestore
-        await FirebaseFirestore.instance.collection(categoriesCollection).doc(category.id).delete();
-        
+        await FirebaseFirestore.instance
+            .collection(categoriesCollection)
+            .doc(category.id)
+            .delete();
+
         print('Category deleted successfully');
       } catch (e) {
         print('Error deleting category: $e');
@@ -151,7 +170,8 @@ Future<String> _getImageUrl(dynamic imageUrlData) async {
 
   Future<void> _deleteImage(String imageUrl) async {
     try {
-      final firebase_storage.Reference storageReference = firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
+      final firebase_storage.Reference storageReference =
+          firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
       await storageReference.delete();
       print('Image deleted successfully: $imageUrl');
     } catch (e) {

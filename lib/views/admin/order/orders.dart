@@ -4,8 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Import the HighlightedText class here
-
 class OrdersScreen extends StatefulWidget {
   @override
   _OrdersScreenState createState() => _OrdersScreenState();
@@ -34,7 +32,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: CircleAvatar(
-                    backgroundColor: Colors.red, // You can customize the color
+                    backgroundColor: Colors.red,
                     child: Text(
                       orderIds.length.toString(),
                       style: TextStyle(color: Colors.white),
@@ -125,21 +123,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<List<String>> getOrderIds() async {
     try {
-      final User? user = _auth.currentUser;
+      final CollectionReference orders = FirebaseFirestore.instance.collection('orders');
 
-      if (user != null) {
-        final CollectionReference users = FirebaseFirestore.instance.collection('users');
+      // Fetch all orders, ordered by timestamp in descending order
+      QuerySnapshot orderSnapshot = await orders.orderBy('timestamp', descending: true).get();
 
-        // Fetch user's orderIds
-        DocumentSnapshot userSnapshot = await users.doc(user.uid).get();
-
-        if (userSnapshot.exists) {
-          List<String> orderIds = List<String>.from(userSnapshot['orders']);
-          return orderIds;
-        }
-      }
-
-      return [];
+      List<String> orderIds = orderSnapshot.docs.map((doc) => doc.id).toList();
+      return orderIds;
     } catch (e) {
       print('Error fetching orderIds: $e');
       return [];
@@ -147,14 +137,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   void filterOrders(String searchTerm) async {
-  List<String> orderIds = await getOrderIds();
+    List<String> orderIds = await getOrderIds();
 
-  setState(() {
-    filteredOrderIds = orderIds
-        .where((orderId) =>
-            orderId.toLowerCase().contains(searchTerm.toLowerCase()))
-        .toList();
-  });
-}
-
+    setState(() {
+      filteredOrderIds = orderIds
+          .where((orderId) =>
+              orderId.toLowerCase().contains(searchTerm.toLowerCase()))
+          .toList();
+    });
+  }
 }

@@ -48,6 +48,7 @@ class CategoryGrid extends StatelessWidget {
           itemCount: categories.length,
           itemBuilder: (context, index) {
             var category = categories[index];
+            print(category.id);
             return Card(
               child: InkWell(
                 onTap: () {
@@ -55,7 +56,8 @@ class CategoryGrid extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProductShow(categoryId: category.id),
+                      builder: (context) =>
+                          ProductShow(categoryId: category.id),
                     ),
                   );
                 },

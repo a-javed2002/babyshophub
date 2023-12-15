@@ -1,120 +1,130 @@
+import 'dart:math';
+
 import 'package:babyshophub/consts/consts.dart';
+import 'package:babyshophub/views/admin/product/edit-product.dart';
 import 'package:babyshophub/views/common/admin-scaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:flutter/material.dart';
 
-class ShowProduct extends StatefulWidget {
-  const ShowProduct({Key? key}) : super(key: key);
-
-  @override
-  _ShowProductState createState() => _ShowProductState();
-}
-
-class _ShowProductState extends State<ShowProduct> {
-  late List<Map<String, dynamic>> _products;
-
-  @override
-  void initState() {
-    super.initState();
-    // Fetch and load products when the screen is initialized
-    _loadProducts();
-  }
-
-  Future<void> _loadProducts() async {
-    try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection(productsCollection) // Adjust the collection name as needed
-          .get();
-
-      setState(() {
-        _products = querySnapshot.docs
-            .map((doc) => doc.data() as Map<String, dynamic>)
-            .toList();
-      });
-    } catch (e) {
-      print('Error loading products: $e');
-      // Handle the error as needed
-    }
-  }
-
+class ShowProduct extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdminCustomScaffold(
+      context: context,
       appBarTitle: "Manage Products",
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Display a list of products
-            Expanded(
-              child: ListView.builder(
-                itemCount: _products.length,
-                itemBuilder: (context, index) {
-                  final product = _products[index];
-                  return ListTile(
-                    title: Text(product['name']),
-                    subtitle: Text(product['description']),
-                    leading: FutureBuilder<String>(
-                      future: _getImageUrl(product['imageUrls']),
-                      builder: (context, imageUrlSnapshot) {
-                        if (imageUrlSnapshot.connectionState == ConnectionState.waiting) {
-                          return CircularProgressIndicator();
-                        }
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection(productsCollection).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
 
-                        if (imageUrlSnapshot.hasError) {
-                          return Text('Error: ${imageUrlSnapshot.error}');
-                        }
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
 
-                        final imageUrl = imageUrlSnapshot.data ?? '';
-                        return CircleAvatar(
-                          backgroundImage: NetworkImage(imageUrl),
-                          radius: 25,
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('No products found.'));
+          }
+
+          List<QueryDocumentSnapshot> products = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              var product = products[index];
+              return ListTile(
+                title: Text("${product['name']} === ${product['timestamp']} === ${product['last_update_date']} === ${product['category_id_fk']}"),
+                subtitle: Text("${product['description']} === ${product['price']} === ${product['quantity']} === ${product['status']}"),
+                leading: FutureBuilder<String>(
+                  future: _getImageUrl(product['imageUrls']),
+                  builder: (context, imageUrlSnapshot) {
+                    if (imageUrlSnapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    }
+
+                    if (imageUrlSnapshot.hasError) {
+                      print('Error getting image URL: ${imageUrlSnapshot.error}');
+                      return Text('Error loading image');
+                    }
+
+                    final imageUrl = imageUrlSnapshot.data ?? '';
+                    return CircleAvatar(
+                      backgroundImage: Image.network(
+                        imageUrl,
+                        errorBuilder: (context, error, stackTrace) {
+                          print('Error loading image: $error');
+                          return Text('Error loading image');
+                        },
+                      ).image,
+                      radius: 25,
+                    );
+                  },
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => EditProduct(productId: product.id,)),
                         );
                       },
                     ),
-                    // You can add more information here like price, quantity, etc.
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () {
-                            // Handle edit action
-                            // Navigate to edit product screen or show a dialog
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            // Handle delete action
-                            _showDeleteConfirmationDialog(product['id'], product['imageUrls']);
-                          },
-                        ),
-                      ],
+                    IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        // Delete the category and associated images
+                        _deleteCategory(context, product);
+                      },
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 
-  Future<String> _getImageUrl(List<String> imageUrls) async {
-    if (imageUrls.isNotEmpty) {
-      return imageUrls[0];
+  Future<String> _getImageUrl(dynamic imageUrlData) async {
+    if (imageUrlData is List<String> && imageUrlData.isNotEmpty) {
+      return imageUrlData[0];
+    } else if (imageUrlData is String && imageUrlData.isNotEmpty) {
+      return imageUrlData;
     } else {
-      // If no product image exists, return a default image or handle as needed
-      return 'assets/images/default_product_image.jpg';
+      // If no category image exists, return a random image from assets
+      final random = Random();
+      final randomImageIndex = random.nextInt(3) + 1; // Assuming you have three random images in assets
+
+      return 'assets/images/profile.jpg';
     }
   }
 
-  Future<void> _showDeleteConfirmationDialog(String productId, List<String> imageUrls) async {
-    bool confirmDelete = await showDialog(
+  Future<void> _deleteCategory(BuildContext context, QueryDocumentSnapshot category) async {
+    bool confirmDelete = await _showDeleteConfirmationDialog(context);
+    if (confirmDelete) {
+      try {
+        // Delete associated images from Firebase Storage
+        await _deleteProductImages(category['imageUrls']);
+        
+        // Delete the category from Firestore
+        await FirebaseFirestore.instance.collection(productsCollection).doc(category.id).delete();
+        
+        print('Product deleted successfully');
+      } catch (e) {
+        print('Error deleting product: $e');
+      }
+    }
+  }
+
+  Future<bool> _showDeleteConfirmationDialog(BuildContext context) async {
+    return await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -126,56 +136,36 @@ class _ShowProductState extends State<ShowProduct> {
               child: Text("Cancel"),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-                _deleteProduct(productId, imageUrls);
-              },
+              onPressed: () => Navigator.of(context).pop(true),
               child: Text("Delete"),
             ),
           ],
         );
       },
     );
+  }
 
-    if (confirmDelete == true) {
-      // User confirmed deletion, proceed with _deleteProduct
-      _deleteProduct(productId, imageUrls);
+  Future<void> _deleteProductImages(dynamic imageUrlData) async {
+    try {
+      if (imageUrlData is List<String>) {
+        for (String imageUrl in imageUrlData) {
+          await _deleteImage(imageUrl);
+        }
+      } else if (imageUrlData is String) {
+        await _deleteImage(imageUrlData);
+      }
+    } catch (e) {
+      print('Error deleting product images: $e');
     }
   }
 
-  Future<void> _deleteProduct(String productId, List<String> imageUrls) async {
+  Future<void> _deleteImage(String imageUrl) async {
     try {
-      // Delete product images from Firebase Storage
-      for (final imageUrl in imageUrls) {
-        final storageReference =
-            firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
-        await storageReference.delete();
-      }
-
-      // Delete the product document from Firestore
-      await FirebaseFirestore.instance
-          .collection(productsCollection) // Adjust the collection name as needed
-          .doc(productId)
-          .delete();
-
-      // Reload products after deletion
-      _loadProducts();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Product and images deleted successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      final firebase_storage.Reference storageReference = firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
+      await storageReference.delete();
+      print('Image deleted successfully: $imageUrl');
     } catch (e) {
-      print('Error deleting product and images: $e');
-      // Handle the error as needed
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error deleting product and images: $e'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      print('Error deleting image: $e');
     }
   }
 }

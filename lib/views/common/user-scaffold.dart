@@ -3,7 +3,7 @@ import 'package:babyshophub/views/common/appBar.dart';
 import 'package:babyshophub/views/common/drawer.dart';
 import 'package:flutter/material.dart';
 
-class UserCustomScaffold extends StatelessWidget {
+class UserCustomScaffold extends StatefulWidget {
   final Widget body;
   final String appBarTitle;
 
@@ -12,22 +12,18 @@ class UserCustomScaffold extends StatelessWidget {
     required this.appBarTitle,
   });
 
-  List<DrawerItem> _buildDrawerItems(BuildContext context) {
-    // Customize this method to generate dynamic drawer items based on the context or any other logic.
-    return [
-      DrawerItem(icon: Icons.home, title: 'Home', onTap: (context) { /* Handle Home tap */ }),
-      DrawerItem(icon: Icons.settings, title: 'Settings', onTap: (context) { /* Handle Settings tap */ }),
-      // Add more items as needed
-    ];
-  }
+  @override
+  _UserCustomScaffoldState createState() => _UserCustomScaffoldState();
+}
+
+class _UserCustomScaffoldState extends State<UserCustomScaffold> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    List<DrawerItem> drawerItems = _buildDrawerItems(context);
-
     return Scaffold(
       appBar: CustomAppBar(
-        title: appBarTitle,
+        title: widget.appBarTitle,
         backgroundColor: mainColor,
         icons: [Icons.search, Icons.more_vert],
         onPressed: [
@@ -39,8 +35,33 @@ class UserCustomScaffold extends StatelessWidget {
           },
         ],
       ),
-      drawer: MyDrawer(drawerItems:  drawerItems),
-      body: body,
+      body: widget.body,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favorites',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
     );
   }
 }
