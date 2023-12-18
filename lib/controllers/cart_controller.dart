@@ -1,42 +1,54 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CartController {
   static const String cartKey = 'cart';
 
   // Store product data in an array object in SharedPreferences (store productId, quantity)
-  Future<bool> addToCart(String productId, int quantity) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<Map<String, dynamic>> cartData = [];
+Future<bool> addToCart(String productId, int quantity) async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<Map<String, dynamic>> cartData = [];
 
-      // Fetch existing cart data
-      if (prefs.containsKey(cartKey)) {
-        cartData = List<Map<String, dynamic>>.from(
-          json.decode(prefs.getString(cartKey)!),
-        );
-      }
-
-      // Check if the product is already in the cart
-      int existingIndex =
-          cartData.indexWhere((item) => item['productId'] == productId);
-
-      if (existingIndex != -1) {
-        // Product is already in the cart, update quantity
-        cartData[existingIndex]['quantity'] += quantity;
-      } else {
-        // Product is not in the cart, add it
-        cartData.add({'productId': productId, 'quantity': quantity});
-      }
-
-      // Save updated cart data to SharedPreferences
-      prefs.setString(cartKey, json.encode(cartData));
-      return true;
-    } catch (e) {
-      print('Error adding to cart: $e');
-      return false;
+    // Fetch existing cart data
+    if (prefs.containsKey(cartKey)) {
+      cartData = List<Map<String, dynamic>>.from(
+        json.decode(prefs.getString(cartKey)!),
+      );
     }
+
+    // Fetch additional data from Firestore for the product
+    DocumentSnapshot productSnapshot =
+        await FirebaseFirestore.instance.collection('products').doc(productId).get();
+
+    // Check if the product is already in the cart
+    int existingIndex =
+        cartData.indexWhere((item) => item['productId'] == productId);
+
+    if (existingIndex != -1) {
+      // Product is already in the cart, update quantity
+      cartData[existingIndex]['quantity'] += quantity;
+    } else {
+      // Product is not in the cart, add it with additional data
+      cartData.add({
+        'productId': productId,
+        'quantity': quantity,
+        'imageUrls': productSnapshot['imageUrls'],
+        'name': productSnapshot['name'],
+        'price': productSnapshot['price'],
+        'status': productSnapshot['status'],
+      });
+    }
+
+    // Save updated cart data to SharedPreferences
+    prefs.setString(cartKey, json.encode(cartData));
+    return true;
+  } catch (e) {
+    print('Error adding to cart: $e');
+    return false;
   }
+}
 
   // Remove a single product from SharedPreferences by productId
   Future<bool> removeFromCart(String productId) async {

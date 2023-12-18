@@ -1,5 +1,6 @@
 import 'package:babyshophub/controllers/cart_controller.dart';
 import 'package:babyshophub/views/Product/checkout.dart';
+import 'package:babyshophub/views/Product/product-details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +12,50 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   final CartController _cartController = CartController();
   List<Map<String, dynamic>> selectedProducts = [];
+
+  Future<bool> isProductValid(String productId, int quantity) async {
+    try {
+      // Reference to the products collection in Firestore
+      CollectionReference products =
+          FirebaseFirestore.instance.collection('products');
+
+      // Fetch the product document
+      DocumentSnapshot productSnapshot = await products.doc(productId).get();
+
+      //update
+      if (productSnapshot.exists && productSnapshot['status'] != -1) {
+        _cartController.addToCart(productId, quantity);
+      }
+
+      // Check if the product exists and its status is not -1
+      return productSnapshot.exists && productSnapshot['status'] != -1;
+    } catch (e) {
+      print('Error checking product validity: $e');
+      return false;
+    }
+  }
+
+  Future<void> updateProductCartField(String productId, int quantity) async {
+    try {
+      // Reference to the products collection in Firestore
+      CollectionReference products =
+          FirebaseFirestore.instance.collection('products');
+
+      // Fetch the product document
+      DocumentSnapshot productSnapshot = await products.doc(productId).get();
+
+      // Check if the product exists
+      if (productSnapshot.exists) {
+        // Update the 'cart' field with the new quantity
+        await products.doc(productId).update({'cart': quantity});
+        print('Product cart field updated successfully!');
+      } else {
+        print('Product not found in Firestore!');
+      }
+    } catch (e) {
+      print('Error updating product cart field: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,38 +92,136 @@ class _CartScreenState extends State<CartScreen> {
                   itemBuilder: (context, index) {
                     final productId = cartData[index]['productId'];
                     final quantity = cartData[index]['quantity'];
+                    print("$productId and $quantity");
+                    return FutureBuilder<bool>(
+                      future: isProductValid(productId, quantity),
+                      builder: (context, productSnapshot) {
+                        if (productSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        }
 
-                    return Card(
-                      color: selectedProducts.any((element) => element['productId'] == productId)
-                          ? Colors.yellow
-                          : null,
-                      child: ListTile(
-                        title: Text(cartData[index]['name']),
-                        subtitle: Text('Quantity: $quantity'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.remove),
-                              onPressed: () {
-                                // Decrement quantity
-                                _cartController.decrementQuantity(productId);
-                                // Reload cart data after decrement
-                                setState(() {});
-                              },
+                        final bool isProductValid =
+                            productSnapshot.data ?? false;
+
+                        return Dismissible(
+                          key: Key(productId),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 20),
+                            child: Icon(
+                              Icons.delete,
+                              color: Colors.white,
                             ),
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () {
-                                // Increment quantity
-                                _cartController.incrementQuantity(productId);
-                                // Reload cart data after increment
-                                setState(() {});
+                          ),
+                          onDismissed: (direction) async {
+                            // Show a confirmation dialog
+                            bool confirmDelete = await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Confirm Delete'),
+                                  content: Text(
+                                      'Are you sure you want to remove this item from the cart?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                );
                               },
+                            );
+
+                            // Check if the user confirmed the deletion
+                            if (confirmDelete ?? false) {
+                              // Remove the product from the cart when confirmed
+                              _cartController.removeFromCart(productId);
+                              // Reload cart data after removing
+                              setState(() {});
+                            }
+                          },
+                          child: GestureDetector(
+                            onTap: () async {
+                              // Navigate to the ProductDetails screen when card is clicked
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => isProductValid
+                                      ? ProductDetails(
+                                          productId: productId,
+                                        )
+                                      : Container(),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              color: isProductValid ? null : Colors.red,
+                              child: ListTile(
+                                leading: Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: NetworkImage(
+                                          cartData[index]['imageUrls']),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                title: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(cartData[index]['name']),
+                                    Text(
+                                        'Price: \$${cartData[index]['price'].toString()}'),
+                                  ],
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.remove),
+                                      onPressed: () async {
+                                        // Decrement quantity
+                                        _cartController
+                                            .decrementQuantity(productId);
+                                        // Update the product cart field in Firestore
+                                        await updateProductCartField(
+                                            productId, quantity - 1);
+                                        // Reload cart data after decrement
+                                        setState(() {});
+                                      },
+                                    ),
+                                    Text('$quantity'),
+                                    IconButton(
+                                      icon: Icon(Icons.add),
+                                      onPressed: () async {
+                                        // Increment quantity
+                                        _cartController
+                                            .incrementQuantity(productId);
+                                        // Update the product cart field in Firestore
+                                        await updateProductCartField(
+                                            productId, quantity + 1);
+                                        // Reload cart data after increment
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

@@ -30,6 +30,7 @@ class _AddProductState extends State<AddProduct> {
   late File _selectedImage;
 
   List<Map<String, dynamic>> _categories = [];
+  Map<String, dynamic>? _selectedCategory;
 
   @override
   void initState() {
@@ -49,7 +50,12 @@ class _AddProductState extends State<AddProduct> {
           return {"id": doc.id, "name": doc['name']};
         }).toList();
       });
-      print("cat are");
+      if (_categories.isNotEmpty) {
+        // Set the ID of the default selected category
+        _selectedCategoryId = _categories[0]['id'];
+        _selectedCategory = _categories[0]['name'];
+      }
+      print("Categories are:");
       print(_categories);
     } catch (e) {
       print('Error fetching categories: $e');
@@ -158,27 +164,37 @@ class _AddProductState extends State<AddProduct> {
                 onSaved: (value) => _quantity = int.parse(value!),
               ),
               SizedBox(height: 16),
-              // DropdownButtonFormField<String>(
-              //   value: _selectedCategoryId,
-              //   items: _categories.map((category) {
-              //     return DropdownMenuItem<String>(
-              //       value: category['id'].toString(),
-              //       child: Text(category['name']),
-              //     );
-              //   }).toList(),
-              //   decoration: InputDecoration(labelText: 'Select Category'),
-              //   onChanged: (value) {
-              //     setState(() {
-              //       _selectedCategoryId = value!;
-              //     });
-              //   },
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please select a category';
-              //     }
-              //     return null;
-              //   },
-              // ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _categories.isEmpty
+                      ? Text(
+                          'No categories found',
+                          style: TextStyle(fontSize: 16, color: Colors.red),
+                        )
+                      : DropdownButton<Map<String, dynamic>>(
+                          value: _selectedCategory ??
+                              (_categories.isNotEmpty ? _categories[0] : null),
+                          onChanged: (Map<String, dynamic>? newValue) {
+                            // Handle the selected category
+                            setState(() {
+                              _selectedCategory = newValue;
+                              _selectedCategoryId = newValue?['id'] ?? '';
+                            });
+                            print("Selected category: ${newValue?['name']}");
+                            print("Selected category ID: ${newValue?['id']}");
+                          },
+                          items: _categories
+                              .map<DropdownMenuItem<Map<String, dynamic>>>(
+                                  (category) {
+                            return DropdownMenuItem<Map<String, dynamic>>(
+                              value: category,
+                              child: Text(category['name']),
+                            );
+                          }).toList(),
+                        ),
+                ],
+              ),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
@@ -289,8 +305,8 @@ class _AddProductState extends State<AddProduct> {
         'description': _description,
         'price': _price,
         'quantity': _quantity,
-        'category_id_fk': "IV9vIA3sIxrpiV5UB8zX",
-        // 'category_id_fk': _selectedCategoryId,
+        // 'category_id_fk': "IV9vIA3sIxrpiV5UB8zX",
+        'category_id_fk': _selectedCategoryId,
         'imageUrls': imageUrl,
         'status': 1,
         'timestamp': FieldValue.serverTimestamp(),

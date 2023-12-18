@@ -1,12 +1,14 @@
 import 'package:babyshophub/controllers/wishlist_controller.dart';
+import 'package:babyshophub/views/Product/product-details.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class CartScreen extends StatefulWidget {
+class WishlistScreen extends StatefulWidget {
   @override
-  _CartScreenState createState() => _CartScreenState();
+  _WishlistScreenState createState() => _WishlistScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
+class _WishlistScreenState extends State<WishlistScreen> {
   final WishlistController _controller = WishlistController();
 
   @override
@@ -15,7 +17,7 @@ class _CartScreenState extends State<CartScreen> {
       appBar: AppBar(
         title: Text('Wishlist'),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      body: FutureBuilder<List<WishlistItem>>(
         future: _controller.getWishlistData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -27,28 +29,130 @@ class _CartScreenState extends State<CartScreen> {
               child: Text('Error loading Wishlist data'),
             );
           } else {
-            final cartData = snapshot.data ?? [];
+            final wishlistData = snapshot.data ?? [];
 
-            if (cartData.isEmpty) {
+            if (wishlistData.isEmpty) {
               return Center(
                 child: Text('No items in the Wishlist'),
               );
             }
 
             return ListView.builder(
-              itemCount: cartData.length,
+              itemCount: wishlistData.length,
               itemBuilder: (context, index) {
-                final item = cartData[index];
-                final productId = item['productId'];
-                final timestamp = item['timestamp'];
+                final item = wishlistData[index];
+                final productId = item.productId;
+                final timestamp = item.timestamp;
 
-                return ListTile(
-                  title: Text('Product ID: $productId'),
-                  subtitle: Text('Timestamp: $timestamp'),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      _removeItem(productId);
+                return Dismissible(
+                  key: Key(productId),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.only(right: 20),
+                    child: Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onDismissed: (direction) async {
+                            // Show a confirmation dialog
+                            bool confirmDelete = await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Confirm Delete'),
+                                  content: Text(
+                                      'Are you sure you want to remove this item from the cart?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            // Check if the user confirmed the deletion
+                            if (confirmDelete ?? false) {
+                              // Remove the product from the cart when confirmed
+                              _removeItem(productId);
+                              // Reload cart data after removing
+                              setState(() {});
+                            }
+                          },
+                  child: FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('products')
+                        .doc(productId)
+                        .get(),
+                    builder: (context, productSnapshot) {
+                      if (productSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      }
+
+                      if (!productSnapshot.hasData ||
+                          !productSnapshot.data!.exists) {
+                        // Handle the case where the product does not exist
+                        _removeItem(productId);
+                        return Container();
+                      }
+
+                      final productData = productSnapshot.data!;
+                      final productName = productData['name'];
+                      // final productImageUrls = List<String>.from(
+                      //     productData['imageUrls'] ?? []);
+
+                      final bool isProductValid = productData['status']==1;
+
+                      return GestureDetector(
+                            onTap: () async {
+                              // Navigate to the ProductDetails screen when card is clicked
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => isProductValid
+                                      ? ProductDetails(
+                                          productId: productId,
+                                        )
+                                      : Container(),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              color: isProductValid ? null : Colors.red,
+                              child: ListTile(
+                                leading: Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: NetworkImage(
+                                          productData['imageUrls']),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                title: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(productData['name']),
+                                    Text(
+                                        'Price: \$${productData['price'].toString()}'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
                     },
                   ),
                 );
@@ -65,7 +169,7 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  _clearCart();
+                  _clearWishlist();
                 },
                 child: Text('Clear Wishlist'),
               ),
@@ -92,11 +196,11 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
-  Future<void> _clearCart() async {
+  Future<void> _clearWishlist() async {
     bool success = await _controller.clearWishlist();
 
     if (success) {
-      // Reload the cart data after clearing the cart
+      // Reload the wishlist data after clearing the wishlist
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Wishlist cleared'),

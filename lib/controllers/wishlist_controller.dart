@@ -2,6 +2,27 @@ import 'package:babyshophub/consts/consts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+class WishlistItem {
+  final String productId;
+  final Timestamp timestamp;
+
+  WishlistItem({required this.productId, required this.timestamp});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'productId': productId,
+      'timestamp': timestamp,
+    };
+  }
+
+  factory WishlistItem.fromMap(Map<String, dynamic> map) {
+    return WishlistItem(
+      productId: map['productId'],
+      timestamp: map['timestamp'],
+    );
+  }
+}
+
 class WishlistController {
   static const String WishlistField = 'wishlist';
 
@@ -13,37 +34,54 @@ class WishlistController {
     return user?.uid;
   }
 
-  // Store product data in an array object in Firestore (store productId, timestamp)
+  Future<List<WishlistItem>> _getWishlistData(DocumentReference userDoc) async {
+    final DocumentSnapshot userSnapshot = await userDoc.get();
+
+    if (userSnapshot.exists) {
+      final List<dynamic> wishlistData = userSnapshot[WishlistField];
+      return wishlistData
+          .map((item) => WishlistItem.fromMap(item))
+          .cast<WishlistItem>()
+          .toList();
+    }
+
+    return [];
+  }
+
+  Future<void> _updateWishlistData(
+      DocumentReference userDoc, List<WishlistItem> wishlistData) async {
+    await userDoc.set({WishlistField: wishlistData.map((item) => item.toMap()).toList()}, SetOptions(merge: true));
+  }
+
   Future<bool> addToWishlist(String productId) async {
     try {
       final String? userId = await _getUserId();
 
       if (userId != null) {
+        print("Fetch existing Wishlist data $userId");
         final CollectionReference users =
             FirebaseFirestore.instance.collection(userCollection);
 
-        // Fetch existing Wishlist data
-        DocumentSnapshot userSnapshot = await users.doc(userId).get();
-        List<Map<String, dynamic>> WishlistData = [];
+        final DocumentReference userDoc = users.doc(userId);
+        final List<WishlistItem> wishlistData = await _getWishlistData(userDoc);
 
-        if (userSnapshot.exists) {
-          WishlistData = List<Map<String, dynamic>>.from(userSnapshot[WishlistField]);
-        }
-
-        // Check if the product is already in the cart
-        int existingIndex =
-            WishlistData.indexWhere((item) => item['productId'] == productId);
+        // Check if the product is already in the wishlist
+        final int existingIndex =
+            wishlistData.indexWhere((item) => item.productId == productId);
 
         if (existingIndex != -1) {
-          // Product is already in the cart, update timestamp
-          WishlistData[existingIndex]['timestamp'] = FieldValue.serverTimestamp();
+          // Product is already in the wishlist, update timestamp
+          wishlistData[existingIndex] =
+              WishlistItem(productId: productId, timestamp: Timestamp.now());
         } else {
-          // Product is not in the cart, add it
-          WishlistData.add({'productId': productId, 'timestamp': FieldValue.serverTimestamp()});
+          // Product is not in the wishlist, add it with a new timestamp
+          wishlistData.add(
+            WishlistItem(productId: productId, timestamp: Timestamp.now()),
+          );
         }
 
-        // Save updated cart data to Firestore
-        await users.doc(userId).set({WishlistField: WishlistData}, SetOptions(merge: true));
+        // Save updated wishlist data to Firestore
+        await _updateWishlistData(userDoc, wishlistData);
         return true;
       }
 
@@ -54,7 +92,6 @@ class WishlistController {
     }
   }
 
-  // Remove a single product from Firestore by productId
   Future<bool> removeFromWishlist(String productId) async {
     try {
       final String? userId = await _getUserId();
@@ -63,20 +100,14 @@ class WishlistController {
         final CollectionReference users =
             FirebaseFirestore.instance.collection(userCollection);
 
-        // Fetch existing cart data
-        DocumentSnapshot userSnapshot = await users.doc(userId).get();
-        List<Map<String, dynamic>> WishlistData = [];
+        final DocumentReference userDoc = users.doc(userId);
+        final List<WishlistItem> wishlistData = await _getWishlistData(userDoc);
 
-        if (userSnapshot.exists) {
-          WishlistData = List<Map<String, dynamic>>.from(userSnapshot[WishlistField]);
+        // Remove the product from the wishlist
+        wishlistData.removeWhere((item) => item.productId == productId);
 
-          // Remove the product from the cart
-          WishlistData.removeWhere((item) => item['productId'] == productId);
-
-          // Save updated cart data to Firestore
-          await users.doc(userId).set({WishlistField: WishlistData}, SetOptions(merge: true));
-        }
-
+        // Save updated wishlist data to Firestore
+        await _updateWishlistData(userDoc, wishlistData);
         return true;
       }
 
@@ -87,7 +118,6 @@ class WishlistController {
     }
   }
 
-  // Remove all products from the Wishlist in Firestore
   Future<bool> clearWishlist() async {
     try {
       final String? userId = await _getUserId();
@@ -107,8 +137,7 @@ class WishlistController {
     }
   }
 
-  // Get the array object from Firestore
-  Future<List<Map<String, dynamic>>> getWishlistData() async {
+  Future<List<WishlistItem>> getWishlistData() async {
     try {
       final String? userId = await _getUserId();
 
@@ -116,12 +145,8 @@ class WishlistController {
         final CollectionReference users =
             FirebaseFirestore.instance.collection(userCollection);
 
-        // Fetch wishlist data from Firestore
-        DocumentSnapshot userSnapshot = await users.doc(userId).get();
-
-        if (userSnapshot.exists) {
-          return List<Map<String, dynamic>>.from(userSnapshot[WishlistField]);
-        }
+        final DocumentReference userDoc = users.doc(userId);
+        return await _getWishlistData(userDoc);
       }
 
       return [];
@@ -131,7 +156,6 @@ class WishlistController {
     }
   }
 
-    // Check if a product with a given productId is present in the wishlist
   Future<bool> isProductInWishlist(String productId) async {
     try {
       final String? userId = await _getUserId();
@@ -140,16 +164,11 @@ class WishlistController {
         final CollectionReference users =
             FirebaseFirestore.instance.collection(userCollection);
 
-        // Fetch wishlist data from Firestore
-        DocumentSnapshot userSnapshot = await users.doc(userId).get();
+        final DocumentReference userDoc = users.doc(userId);
+        final List<WishlistItem> wishlistData = await _getWishlistData(userDoc);
 
-        if (userSnapshot.exists) {
-          List<Map<String, dynamic>> wishlistData =
-              List<Map<String, dynamic>>.from(userSnapshot[WishlistField]);
-
-          // Check if the product is in the wishlist
-          return wishlistData.any((item) => item['productId'] == productId);
-        }
+        // Check if the product is in the wishlist
+        return wishlistData.any((item) => item.productId == productId);
       }
 
       return false;

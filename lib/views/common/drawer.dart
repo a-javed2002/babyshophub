@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 
 class MyDrawer extends StatelessWidget {
   final List<DrawerItem> drawerItems;
+  final BuildContext context;
 
-  MyDrawer({required this.drawerItems});
+  MyDrawer({required this.drawerItems,required this.context});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Drawer(
       child: ListView(
         children: [
@@ -63,7 +64,7 @@ class MyDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildDrawerItem(BuildContext context, DrawerItem item) {
+  Widget _buildDrawerItem(context, DrawerItem item) {
     return ListTile(
       title: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -98,3 +99,4 @@ class DrawerItem {
     this.isSelected = false,
   });
 }
+

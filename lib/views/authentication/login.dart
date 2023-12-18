@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLoading = false;
   TextEditingController _emailController =
-      TextEditingController(text: "a@a.com");
+      TextEditingController(text: "y@y.com");
   TextEditingController _passwordController =
       TextEditingController(text: "123456");
 
