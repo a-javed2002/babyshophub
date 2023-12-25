@@ -309,6 +309,7 @@ class _AddProductState extends State<AddProduct> {
         'category_id_fk': _selectedCategoryId,
         'imageUrls': imageUrl,
         'status': 1,
+        'feedback': [],
         'timestamp': FieldValue.serverTimestamp(),
         'last_update_date': FieldValue.serverTimestamp(),
       }).then((value) {

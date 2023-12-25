@@ -1,88 +1,12 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:babyshophub/consts/consts.dart';
+import 'package:babyshophub/controllers/cart_controller.dart';
+import 'package:babyshophub/controllers/wishlist_controller.dart';
 import 'package:babyshophub/views/Product/product-details.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:babyshophub/views/common/user-scaffold.dart';
-
-class CategoryShow extends StatelessWidget {
-  const CategoryShow({Key? key});
-
-  @override
-  Widget build(BuildContext context) {
-    return UserCustomScaffold(
-      appBarTitle: "All Categories",
-      body: CategoryGrid(),
-    );
-  }
-}
-
-class CategoryGrid extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(categoriesCollection)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        }
-
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Error: ${snapshot.error}'),
-          );
-        }
-
-        List<QueryDocumentSnapshot> categories = snapshot.data!.docs;
-
-        if (categories.isEmpty) {
-          return Center(
-            child: Text('No categories found.'),
-          );
-        }
-
-        return GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // Number of columns
-            crossAxisSpacing: 8.0,
-            mainAxisSpacing: 8.0,
-          ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            var category = categories[index];
-            return Card(
-              child: InkWell(
-                onTap: () {
-                  // Handle category tap
-                  print("id is ${category.id}");
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CategoryPage(
-                        title: category['name'],
-                        image: category['imageUrl'],
-                        id: category.id,
-                      ),
-                    ),
-                  );
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Add category-specific widgets here
-                    Text(category['name']),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CategoryPage extends StatefulWidget {
   final String? title;
@@ -266,15 +190,54 @@ class _CategoryPageState extends State<CategoryPage> {
             child: Text('No products found.'),
           );
         }
+        CartController _controllerCart = CartController();
+        WishlistController _controllerWishlist = WishlistController();
+        bool productIsInCart = false;
+        bool productIsInWishlist = false;
+
+        void chk(id) async {
+          productIsInCart = await _controllerCart.isProductInCart(id);
+          productIsInWishlist =
+              await _controllerWishlist.isProductInWishlist(id);
+        }
+
+        Future<void> addWishlist(String productId) async {
+          bool temp;
+          print("Adding Wishlist...");
+          temp = await _controllerWishlist.addToWishlist(productId);
+          setState(() {});
+        }
+
+        Future<void> removeWishlist(String productId) async {
+          bool temp;
+          print("Removing Wishlist...");
+          temp = await _controllerWishlist.removeFromWishlist(productId);
+          setState(() {});
+        }
+
+        void showToast(String message) {
+          Fluttertoast.showToast(
+            msg: message,
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+          );
+        }
 
         for (var product in products) {
           if (product['category_id_fk'] == id) {
+            chk(product.id);
+            print(productIsInWishlist);
             productWidgets.add(
               GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ProductDetails(productId: product.id,)),
+                    MaterialPageRoute(
+                        builder: (context) => ProductDetails(
+                              productId: product.id,
+                            )),
                   );
                 },
                 child: Container(
@@ -310,8 +273,21 @@ class _CategoryPageState extends State<CategoryPage> {
                           duration: Duration(milliseconds: 1400),
                           child: Align(
                             alignment: Alignment.topRight,
-                            child: Icon(Icons.favorite_border,
-                                color: Colors.white),
+                            child: productIsInWishlist
+                                ? GestureDetector(
+                                    onTap: () async {
+                                      await removeWishlist(product.id);
+                                      showToast('Removed from Wishlist');
+                                    },
+                                    child:
+                                        Icon(Icons.favorite, color: Colors.red))
+                                : GestureDetector(
+                                    onTap: () async {
+                                      await addWishlist(product.id);
+                                      showToast('Added to Wishlist');
+                                    },
+                                    child: Icon(Icons.favorite_border,
+                                        color: Colors.white)),
                           ),
                         ),
                         Row(
@@ -348,8 +324,25 @@ class _CategoryPageState extends State<CategoryPage> {
                                   color: Colors.white,
                                 ),
                                 child: Center(
-                                  child: Icon(Icons.add_shopping_cart,
-                                      size: 18, color: Colors.grey[700]),
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      if (await _controllerCart.addToCart(
+                                          product.id, 1)) {
+                                        showToast(
+                                          productIsInCart
+                                              ? 'Already In Cart'
+                                              : 'Added to Cart',
+                                        );
+                                        setState(() {
+                                          productIsInCart = true;
+                                        });
+                                      } else {
+                                        showToast('Error Add To Cart');
+                                      }
+                                    },
+                                    child: Icon(Icons.add_shopping_cart,
+                                        size: 18, color: Colors.grey[700]),
+                                  ),
                                 ),
                               ),
                             ),

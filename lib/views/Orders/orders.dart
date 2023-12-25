@@ -6,12 +6,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Import the HighlightedText class here
 
-class OrdersScreen extends StatefulWidget {
+class MyOrdersScreen extends StatefulWidget {
   @override
-  _OrdersScreenState createState() => _OrdersScreenState();
+  _MyOrdersScreenState createState() => _MyOrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> {
+class _MyOrdersScreenState extends State<MyOrdersScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   TextEditingController searchController = TextEditingController();
   List<String> filteredOrderIds = [];
@@ -98,7 +98,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ),
                           textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: Colors.black,
                             fontSize: 16,
                           ),
                         ),

@@ -5,12 +5,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+// import 'package:flutter_twitter_login/flutter_twitter_login.dart';
 
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
+  final GoogleSignIn googleSignIn = GoogleSignIn();
 
   var isLoading = false;
 
@@ -66,6 +70,80 @@ class AuthController {
     });
   }
 
+   Future<User?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+
+      if (googleSignInAccount == null) {
+        return null; // User canceled the sign-in process
+      }
+
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleSignInAuthentication.idToken,
+      );
+
+      UserCredential authResult = await _auth.signInWithCredential(credential);
+      User? user = authResult.user;
+
+      return user;
+    } catch (e) {
+      print("Google Sign In Error: $e");
+      return null;
+    }
+  }
+
+  Future<User?> signInWithFacebook() async {
+    try {
+      final LoginResult loginResult = await FacebookAuth.instance.login();
+
+      if (loginResult.status != LoginStatus.success) {
+        return null; // Facebook Sign-In failed
+      }
+
+      final AuthCredential credential = FacebookAuthProvider.credential(
+        loginResult.accessToken!.token,
+      );
+
+      UserCredential authResult = await _auth.signInWithCredential(credential);
+      User? user = authResult.user;
+
+      return user;
+    } catch (e) {
+      print("Facebook Sign In Error: $e");
+      return null;
+    }
+  }
+
+  // Future<User?> signInWithTwitter() async {
+  //   try {
+  //     final TwitterLoginResult loginResult = await TwitterLogin(
+  //       consumerKey: 'your_consumer_key',
+  //       consumerSecret: 'your_consumer_secret',
+  //     ).authorize();
+
+  //     if (loginResult.status != TwitterLoginStatus.loggedIn) {
+  //       return null; // Twitter Sign-In failed
+  //     }
+
+  //     final AuthCredential credential = TwitterAuthProvider.credential(
+  //       accessToken: loginResult.session!.token,
+  //       secret: loginResult.session!.secret,
+  //     );
+
+  //     UserCredential authResult = await _auth.signInWithCredential(credential);
+  //     User? user = authResult.user;
+
+  //     return user;
+  //   } catch (e) {
+  //     print("Twitter Sign In Error: $e");
+  //     return null;
+  //   }
+  // }
+
   Future<void> logout(BuildContext context) async {
     try {
       // Clear user data from SharedPreferences
@@ -73,6 +151,9 @@ class AuthController {
 
       // Sign out from Firebase Authentication
       await _auth.signOut();
+      await googleSignIn.signOut();
+      await FacebookAuth.instance.logOut();
+      // No specific sign-out method for Twitter
     } catch (e) {
       print('Error during logout: $e');
       ToastWidget.show(

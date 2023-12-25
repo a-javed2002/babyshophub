@@ -157,10 +157,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             SizedBox(height: 20),
-            Visibility(
-              visible: isLoading,
-              child: CustomLoader(), // Add your loader widget here
-            ),
+            isLoading?CustomLoader():
             ElevatedButton(
               onPressed: () {
                 // Implement login functionality here

@@ -35,3 +35,62 @@ class MyApp extends StatelessWidget {
   }
 }
 
+
+
+
+
+
+
+
+// class MyMain extends StatefulWidget {
+//   @override
+//   _MyMainState createState() => _MyMainState();
+// }
+
+// class _MyMainState extends State<MyMain> implements MySpecificWidgetUpdater {
+//   int counter = 0;
+
+//   // Reference to the updater interface
+//   MySpecificWidgetUpdater? _specificWidgetUpdater;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _specificWidgetUpdater = MySpecificWidgetUpdater(this);
+//   }
+
+//   void _incrementCounter() {
+//     setState(() {
+//       counter++;
+//     });
+
+//     // Access and call a method on the specific widget to refresh only that part
+//     _specificWidgetUpdater?.updateFunction();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Specific Widget Refresh'),
+//       ),
+//       body: Column(
+//         mainAxisAlignment: MainAxisAlignment.center,
+//         children: <Widget>[
+//           Text(
+//             'Counter: $counter',
+//             style: TextStyle(fontSize: 20),
+//           ),
+//           MySpecificWidget(
+//             updater: _specificWidgetUpdater,
+//           ),
+//         ],
+//       ),
+//       floatingActionButton: FloatingActionButton(
+//         onPressed: _incrementCounter,
+//         tooltip: 'Increment',
+//         child: Icon(Icons.add),
+//       ),
+//     );
+//   }
+// }

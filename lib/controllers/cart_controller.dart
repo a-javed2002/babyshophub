@@ -34,6 +34,8 @@ Future<bool> addToCart(String productId, int quantity) async {
       cartData.add({
         'productId': productId,
         'quantity': quantity,
+        'selected': true,
+        'cat_id_fk': productSnapshot['category_id_fk'],
         'imageUrls': productSnapshot['imageUrls'],
         'name': productSnapshot['name'],
         'price': productSnapshot['price'],
@@ -86,21 +88,42 @@ Future<bool> addToCart(String productId, int quantity) async {
   }
 
   // Get the array object from SharedPreferences
+  // Future<List<Map<String, dynamic>>> getCartData() async {
+  //   try {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     if (prefs.containsKey(cartKey)) {
+  //       return List<Map<String, dynamic>>.from(
+  //         json.decode(prefs.getString(cartKey)!),
+  //       );
+  //     } else {
+  //       return [];
+  //     }
+  //   } catch (e) {
+  //     print('Error getting cart data: $e');
+  //     return [];
+  //   }
+  // }
+
   Future<List<Map<String, dynamic>>> getCartData() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      if (prefs.containsKey(cartKey)) {
-        return List<Map<String, dynamic>>.from(
-          json.decode(prefs.getString(cartKey)!),
-        );
-      } else {
-        return [];
-      }
-    } catch (e) {
-      print('Error getting cart data: $e');
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey(cartKey)) {
+      List<Map<String, dynamic>> cartData = List<Map<String, dynamic>>.from(
+        json.decode(prefs.getString(cartKey)!),
+      );
+
+      // Sort cartData based on cat_id_fk in ascending order
+      cartData.sort((a, b) => (a['cat_id_fk']).compareTo(b['cat_id_fk']));
+
+      return cartData;
+    } else {
       return [];
     }
+  } catch (e) {
+    print('Error getting cart data: $e');
+    return [];
   }
+}
 
   // Increment the quantity of a product in the cart
   Future<bool> incrementQuantity(String productId) async {
