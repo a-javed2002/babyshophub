@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:babyshophub/views/admin/product/show-product.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -299,6 +300,9 @@ class _AddProductState extends State<AddProduct> {
     } else {
       // Upload the images to Firebase Storage
       String? imageUrl = await _uploadImageToStorage();
+      final FirebaseAuth _auth = FirebaseAuth.instance;
+      final User? user = _auth.currentUser;
+      String currentUserUid = user!.uid;
       // Add the data to Firestore
       FirebaseFirestore.instance.collection(productsCollection).add({
         'name': _productName,
@@ -310,6 +314,7 @@ class _AddProductState extends State<AddProduct> {
         'imageUrls': imageUrl,
         'status': 1,
         'feedback': [],
+        'addedBy': currentUserUid,
         'timestamp': FieldValue.serverTimestamp(),
         'last_update_date': FieldValue.serverTimestamp(),
       }).then((value) {

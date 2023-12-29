@@ -1,3 +1,4 @@
+import 'package:babyshophub/Notifiers/theme_notifier.dart';
 import 'package:babyshophub/views/authentication/Login.dart';
 import 'package:babyshophub/views/authentication/splashScreen.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +23,10 @@ Future<void> main() async {
         messagingSenderId: "352086438099",
         storageBucket: "gs://babyshophub-c9c2f.appspot.com"),
   );
-  runApp(MyApp());
+  runApp(ChangeNotifierProvider(
+        create: (context) => ThemeNotifier(false),
+        child: MyApp(),
+      ),);
 }
 
 class MyApp extends StatelessWidget {
@@ -30,12 +35,14 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      // theme: ThemeData(
+      //   colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      //   useMaterial3: true,
+      // ),
+      theme: themeNotifier.currentTheme,
       home: SplashScreen(),
     );
   }

@@ -55,6 +55,10 @@ dependencies:
   flutter_facebook_auth: ^6.0.3
   syncfusion_flutter_charts: ^21.2.4
   charts_flutter: ^0.12.0
+  url_launcher: ^6.2.2
+  mailer: ^6.0.1
+  emoji_picker_flutter: ^1.6.3
+  flutter_rating_bar: ^4.0.1
 
 dev_dependencies:
   flutter_test:

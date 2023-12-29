@@ -25,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
       TextEditingController(text: "y@y.com");
   TextEditingController _passwordController =
       TextEditingController(text: "123456");
+  bool _isPasswordVisible = false;
 
   void storeUserDataInSharedPreferences(Map<String, dynamic> userData) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -136,9 +137,9 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Login Page'),
-        ),
+        // appBar: AppBar(
+        //   title: Text('Login Page'),
+        // ),
         // body: Padding(
         //   padding: const EdgeInsets.all(16.0),
         //   child: Column(
@@ -278,73 +279,147 @@ class _LoginPageState extends State<LoginPage> {
                       FadeInUp(
                           duration: Duration(milliseconds: 1800),
                           child: Container(
-                            padding: EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    color: Color.fromARGB(255, 102, 131, 155)),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: mainColor,
-                                      blurRadius: 20.0,
-                                      offset: Offset(0, 10))
-                                ]),
-                            child: Column(
-                              children: <Widget>[
-                                Container(
-                                  padding: EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color:
+                                          Color.fromARGB(255, 102, 131, 155)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: mainColor,
+                                        blurRadius: 20.0,
+                                        offset: Offset(0, 10))
+                                  ]),
+                              child: Column(
+                                children: <Widget>[
+                                  Container(
+                                    padding: EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
                                       border: Border(
-                                          bottom: BorderSide(
-                                              color: Color.fromRGBO(
-                                                  143, 148, 251, 1)))),
-                                  child: TextField(
-                                    decoration: InputDecoration(
+                                        bottom: BorderSide(
+                                          color: _emailController
+                                                  .text.isNotEmpty
+                                              ? Colors
+                                                  .green // Change color based on condition
+                                              : Color.fromRGBO(
+                                                  143, 148, 251, 1),
+                                        ),
+                                      ),
+                                    ),
+                                    child: TextField(
+                                      onChanged: (value) {
+                                        setState(() {});
+                                      },
+                                      style: TextStyle(color: Colors.black),
+                                      controller: _emailController,
+                                      decoration: InputDecoration(
                                         border: InputBorder.none,
                                         hintText: "Email",
                                         hintStyle:
-                                            TextStyle(color: Colors.grey[700])),
+                                            TextStyle(color: Colors.grey[700]),
+                                        prefixIcon: Icon(Icons
+                                            .email), // Add icon to the left
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                Container(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: TextField(
-                                    obscureText: true,
-                                    decoration: InputDecoration(
+                                  Container(
+                                    padding: EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: _passwordController
+                                                  .text.isNotEmpty
+                                              ? Colors
+                                                  .green // Change color based on condition
+                                              : Color.fromRGBO(
+                                                  143, 148, 251, 1),
+                                        ),
+                                      ),
+                                    ),
+                                    child: TextField(
+                                      onChanged: (value) {
+                                        setState(() {});
+                                      },
+                                      style: TextStyle(color: Colors.black),
+                                      controller: _passwordController,
+                                      obscureText: !_isPasswordVisible,
+                                      decoration: InputDecoration(
                                         border: InputBorder.none,
                                         hintText: "Password",
                                         hintStyle:
-                                            TextStyle(color: Colors.grey[700])),
+                                            TextStyle(color: Colors.grey[700]),
+                                        prefixIcon: Icon(
+                                            Icons.lock), // Add icon to the left
+                                        suffixIcon: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _isPasswordVisible =
+                                                  !_isPasswordVisible;
+                                            });
+                                          },
+                                          child: Icon(
+                                            _isPasswordVisible
+                                                ? Icons.visibility
+                                                : Icons.visibility_off,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                )
-                              ],
-                            ),
-                          )),
+                                ],
+                              ))),
                       SizedBox(
                         height: 30,
                       ),
                       FadeInUp(
                           duration: Duration(milliseconds: 1900),
-                          child: Container(
-                            height: 50,
-                            decoration: BoxDecoration(
+                          child: isLoading
+                                  ? CustomLoader()
+                                  :  GestureDetector(
+                            onTap: () {
+                                if (_emailController.text.isNotEmpty &&
+                                    _passwordController.text.isNotEmpty) {
+                                  login(_emailController.text,
+                                      _passwordController.text);
+                                } else {
+                                  CustomPopup(
+                                    message: 'Fill All Fields',
+                                    isSuccess: false,
+                                  );
+                                }
+                              },
+                            child: Container(
+                              height: 50,
+                              decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                gradient: LinearGradient(colors: [
-                                  Color.fromRGBO(143, 148, 251, 1),
-                                  Color.fromRGBO(143, 148, 251, .6),
-                                ])),
-                            child: Center(
-                              child: Text(
-                                "Login",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
+                                gradient: LinearGradient(
+                                  colors: (_emailController.text.isNotEmpty &&
+                                          _passwordController.text.isNotEmpty)
+                                      ? [
+                                          Color.fromRGBO(34, 40, 138, 0.6),
+                                          Color.fromRGBO(41, 51, 233, 0.6),
+                                        ]
+                                      : [
+                                          Color.fromRGBO(143, 148, 251, 1),
+                                          Color.fromRGBO(143, 148, 251, .6),
+                                        ],
+                                ),
                               ),
+                              child: Center(
+                                      child: Text(
+                                        "Login",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                             ),
                           )),
                       SizedBox(
-                        height: 70,
+                        height: 10,
                       ),
                       FadeInUp(
                           duration: Duration(milliseconds: 2000),
@@ -353,21 +428,23 @@ class _LoginPageState extends State<LoginPage> {
                             style: TextStyle(
                                 color: Color.fromRGBO(143, 148, 251, 1)),
                           )),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Don't have an account?"),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => SignUpPage()),
-                              );
-                            },
-                            child: Text('Sign Up'),
-                          ),
-                        ],
+                      FadeInUp(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Don't have an account?",style: TextStyle(color: Color.fromRGBO(0, 0, 0, 0.6))),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => SignUpPage()),
+                                );
+                              },
+                              child: Text('Sign Up',style: TextStyle(color: Color.fromRGBO(34, 40, 138, 0.6)),),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

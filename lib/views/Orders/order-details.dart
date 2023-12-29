@@ -1,19 +1,20 @@
+import 'package:babyshophub/views/Orders/order-status.dart';
+import 'package:babyshophub/views/Product/product-details.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:babyshophub/consts/consts.dart';
 
-class OrderDetailsScreen extends StatefulWidget {
+class MyOrderDetailsScreen extends StatefulWidget {
   final String orderId;
 
-  OrderDetailsScreen(this.orderId);
+  MyOrderDetailsScreen(this.orderId);
 
   @override
-  _OrderDetailsScreenState createState() => _OrderDetailsScreenState();
+  _MyOrderDetailsScreenState createState() => _MyOrderDetailsScreenState();
 }
 
-class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
-  final GlobalKey<_OrderStatusBarState> _orderStatusBarKey =
-      GlobalKey<_OrderStatusBarState>();
+class _MyOrderDetailsScreenState extends State<MyOrderDetailsScreen> {
+
 
   @override
   Widget build(BuildContext context) {
@@ -40,29 +41,63 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       snapshot.data!.data() as Map<String, dynamic>;
 
                   // Extract and display order details as needed
+                  // Inside the FutureBuilder's builder function
                   return ListView(
                     children: [
+                      OrderStatusBar(),
                       ListTile(
                         title: Text('Order ID: ${widget.orderId}'),
                         subtitle: Text('Date: ${orderData['timestamp']}'),
                         // Add other order details as needed
+                      ),
+                      SizedBox(height: 10), // Add some spacing
+
+                      // Display order items
+                      ...List.generate(
+                        (orderData['orderItems'] as List<dynamic>).length,
+                        (index) {
+                          final orderItem = orderData['orderItems'][index]
+                              as Map<String, dynamic>;
+
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProductDetails(productId: orderItem['productId']),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              child: ListTile(
+                                title: Text('Product: ${orderItem['name']}'),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Quantity: ${orderItem['quantity']}'),
+                                    Text(
+                                        'Price: \$${orderItem['price']}'), // Assuming 'price' is a numeric field
+                                  ],
+                                ),
+                                leading: Image.network(
+                                  orderItem[
+                                      'imageUrls'], // Assuming 'imageUrl' is a valid URL
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                ),
+                                // Add other product details as needed
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   );
                 }
               },
             ),
-          ),
-          // Add the animated status bar
-          OrderStatusBar(key: _orderStatusBarKey),
-
-          // Add a button to toggle the status bar
-          ElevatedButton(
-            onPressed: () {
-              // Call toggleStatusBar on the existing OrderStatusBar instance
-              _orderStatusBarKey.currentState?.toggleStatusBar();
-            },
-            child: const Text('Toggle Status Bar'),
           ),
         ],
       ),
@@ -83,77 +118,5 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       // Return an empty DocumentSnapshot in case of an error
       return null;
     }
-  }
-}
-
-
-class OrderStatusBar extends StatefulWidget {
-  const OrderStatusBar({Key? key}) : super(key: key);
-
-  @override
-  _OrderStatusBarState createState() => _OrderStatusBarState();
-}
-
-class _OrderStatusBarState extends State<OrderStatusBar> {
-  double _statusBarHeight = 0.0;
-
-  void toggleStatusBar() {
-    setState(() {
-      _statusBarHeight = _statusBarHeight == 0.0 ? 100.0 : 0.0;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 500),
-      height: _statusBarHeight,
-      color: Colors.green, // You can customize the color
-      child: Center(
-        child: Text(
-          _statusBarHeight == 0.0
-              ? 'No Order Submitted'
-              : 'Order Submitted Successfully!',
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-    );
-  }
-}
-
-class OrderScreen extends StatefulWidget {
-  @override
-  _OrderScreenState createState() => _OrderScreenState();
-}
-
-class _OrderScreenState extends State<OrderScreen> {
-  final GlobalKey<_OrderStatusBarState> _orderStatusBarKey =
-      GlobalKey<_OrderStatusBarState>();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Screen'),
-      ),
-      body: Column(
-        children: [
-          // Your order content goes here
-          // ...
-
-          // Add the animated status bar
-          OrderStatusBar(key: _orderStatusBarKey),
-
-          // Add a button to toggle the status bar
-          ElevatedButton(
-            onPressed: () {
-              // Call toggleStatusBar on the existing OrderStatusBar instance
-              _orderStatusBarKey.currentState?.toggleStatusBar();
-            },
-            child: const Text('Toggle Status Bar'),
-          ),
-        ],
-      ),
-    );
   }
 }

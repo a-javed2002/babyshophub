@@ -5,6 +5,7 @@ import 'package:babyshophub/views/common/admin-scaffold.dart';
 import 'package:babyshophub/views/common/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -187,6 +188,9 @@ class _AddCategoryState extends State<AddCategory> {
     } else {
       // Get the download URL from the image upload
       String? imageUrl = await _uploadImageToStorage();
+      final FirebaseAuth _auth = FirebaseAuth.instance;
+      final User? user = _auth.currentUser;
+      String currentUserUid = user!.uid;
 
       if (imageUrl != null) {
         // Proceed with Firestore document creation
@@ -194,6 +198,7 @@ class _AddCategoryState extends State<AddCategory> {
           'name': _categoryName,
           'description': _description,
           'imageUrl': imageUrl,
+          'addedBy': currentUserUid,
           'timestamp': FieldValue.serverTimestamp(),
           'last_update_date': FieldValue.serverTimestamp(),
         }).then((value) {

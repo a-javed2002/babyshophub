@@ -151,8 +151,8 @@ class AuthController {
 
       // Sign out from Firebase Authentication
       await _auth.signOut();
-      await googleSignIn.signOut();
-      await FacebookAuth.instance.logOut();
+      // await googleSignIn.signOut();
+      // await FacebookAuth.instance.logOut();
       // No specific sign-out method for Twitter
     } catch (e) {
       print('Error during logout: $e');

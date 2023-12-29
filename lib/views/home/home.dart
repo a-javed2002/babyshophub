@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/controllers/auth_controller.dart';
+import 'package:babyshophub/views/Chats/chats.dart';
 import 'package:babyshophub/views/Product/cart.dart';
 import 'package:babyshophub/views/Product/category.dart';
 import 'package:babyshophub/views/Product/product-details.dart';
@@ -215,7 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: AllProductScreen(),
           ),
           Container(
-            child: WishlistScreen(),
+            child: ChatListScreen(),
           ),
           Container(
             child: MyProfile(),
@@ -247,7 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
+            icon: Icon(Icons.chat),
             label: 'Favorites',
           ),
           BottomNavigationBarItem(

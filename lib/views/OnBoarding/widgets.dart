@@ -1,3 +1,4 @@
+import 'package:lottie/lottie.dart';
 import 'package:babyshophub/consts/consts.dart';
 import 'package:flutter/material.dart';
 
@@ -17,14 +18,10 @@ Widget IntroPage1() {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.asset(
-          'assets/images/onboarding1.png',
-          width: 200, // Adjust the width as needed
-          height: 200, // Adjust the height as needed
-        ),
+        Lottie.asset("assets/animations/boost.json",height: 150,width: 150,reverse: true,repeat: true,fit: BoxFit.cover),
         SizedBox(height: 16), // Add some space between the image and text
         Text(
-          "",
+          "Heading for Page 1",
           style: TextStyle(
               color: whiteColor, fontWeight: FontWeight.bold, fontSize: 20),
         ),
@@ -54,11 +51,7 @@ Widget IntroPage2() {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.network(
-          'assets/images/onboarding2.png', // Replace with your random image URL
-          width: 200, // Adjust the width as needed
-          height: 200, // Adjust the height as needed
-        ),
+        Lottie.asset("assets/animations/work.json",height: 150,width: 150,reverse: true,repeat: true,fit: BoxFit.cover),
         SizedBox(height: 16), // Add some space between the image and text
         Text(
           "Heading for Page 2",
@@ -91,11 +84,7 @@ Widget IntroPage3() {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.network(
-          'assets/images/onboarding3.png', // Replace with your random image URL
-          width: 200, // Adjust the width as needed
-          height: 200, // Adjust the height as needed
-        ),
+        Lottie.asset("assets/animations/achieve.json",height: 150,width: 150,reverse: true,repeat: true,fit: BoxFit.cover),
         SizedBox(height: 16), // Add some space between the image and text
         Text(
           "Heading for Page 3",

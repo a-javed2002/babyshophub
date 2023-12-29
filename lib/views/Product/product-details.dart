@@ -1,4 +1,5 @@
 import 'package:babyshophub/consts/consts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:babyshophub/views/common/user-scaffold.dart';
 import 'package:babyshophub/controllers/cart_controller.dart';
@@ -9,6 +10,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:lottie/lottie.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class ProductDetails extends StatefulWidget {
   String productId;
@@ -26,6 +28,8 @@ class _ProductDetailsState extends State<ProductDetails> {
   late WishlistController _controllerWishlist;
   bool productIsInCart = false;
   bool productIsInWishlist = false;
+  TextEditingController reviewMessageController = TextEditingController();
+  double rating = 0.0;
 
   @override
   void initState() {
@@ -206,14 +210,14 @@ class _ProductDetailsState extends State<ProductDetails> {
                                 if (await _controllerCart.addToCart(
                                     widget.productId, 1)) {
                                   showToast(
-                                  productIsInCart
-                                      ? 'Already In Cart'
-                                      : 'Added to Cart',);
-                                      setState(() {
+                                    productIsInCart
+                                        ? 'Already In Cart'
+                                        : 'Added to Cart',
+                                  );
+                                  setState(() {
                                     productIsInCart = true;
                                   });
-                                }
-                                else{
+                                } else {
                                   showToast('Error Add To Cart');
                                 }
                               },
@@ -227,6 +231,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                       ],
                     ),
                   ),
+                  buildReviewSection(productId: widget.productId),
                 ],
               ),
             ),
@@ -261,5 +266,188 @@ class _ProductDetailsState extends State<ProductDetails> {
       backgroundColor: Colors.black,
       textColor: Colors.white,
     );
+  }
+
+  void _sendMessage({String? imageUrl,String? msg,String?sender_id}) async {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    // String messageText = _messageController.text.trim();
+    // if (messageText.isNotEmpty || imageUrl != null) {
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(_getChatId(currentUserUid: sender_id,recipientUid: _auth.currentUser!.uid))
+          .collection('messages')
+          .add({
+            'sender': sender_id,
+            'text': msg,
+            'imageUrl': imageUrl,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+
+      // _messageController.clear();
+      // setState(() {
+      //   _isEmojiPickerVisible = false;
+      // });
+    // }
+  }
+
+  String _getChatId({required String?currentUserUid,required String?recipientUid}) {
+    // Create a unique chat ID based on user UIDs
+    List<String> participantUids = [currentUserUid!, recipientUid!];
+    participantUids.sort();
+    return participantUids.join('_');
+  }
+
+  Widget buildReviewSection({required String productId}) {
+    return Column(
+      children: [
+        // Display reviews (if any)
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection(productsCollection)
+              .doc(productId)
+              .collection('reviews')
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            }
+
+            final reviews = snapshot.data!.docs;
+
+            if (reviews.isEmpty) {
+              return Text('No reviews yet.');
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Product Reviews',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                // Display each review
+                ...reviews.map((review) {
+                  final reviewData = review.data() as Map<String, dynamic>;
+                  return ListTile(
+                    title: Text(reviewData['message']),
+                    subtitle: Text('User ID: ${reviewData['userId']}'),
+                    // You can display the image and rating here
+                  );
+                }),
+              ],
+            );
+          },
+        ),
+        // Form to submit a new review
+        buildReviewForm(productId: productId),
+      ],
+    );
+  }
+
+  Widget buildReviewForm({required String productId}) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Write a Review',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 8),
+          TextFormField(
+            controller: reviewMessageController,
+            decoration: InputDecoration(
+              labelText: 'Review Message',
+            ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                'Rating: ',
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+              // Add a rating widget (e.g., stars) here
+              RatingBar.builder(
+                initialRating: rating,
+                minRating: 0,
+                direction: Axis.horizontal,
+                allowHalfRating: true,
+                itemCount: 5,
+                itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+                itemBuilder: (context, _) => Icon(
+                  Icons.star,
+                  color: Colors.amber,
+                ),
+                onRatingUpdate: (newRating) {
+                  setState(() {
+                    rating = newRating;
+                  });
+                },
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: () {
+              // Call a function to submit the review
+              submitReview(productId);
+            },
+            child: Text('Submit Review'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> submitReview(String productId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Get the user ID
+        final userId = user.uid;
+
+        // Prepare the review data
+        final reviewData = {
+          'userId': userId,
+          'message': reviewMessageController.text,
+          'rating': rating,
+          // Add other fields if needed
+        };
+
+        // Submit the review to the "reviews" subcollection
+        await FirebaseFirestore.instance
+            .collection(productsCollection)
+            .doc(productId)
+            .collection('reviews')
+            .add(reviewData);
+
+        // Clear the form after submission
+        reviewMessageController.clear();
+        setState(() {
+          rating = 0.0;
+        });
+
+        // Optional: Display a success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Review submitted successfully!'),
+          ),
+        );
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error submitting review: $e');
+    }
   }
 }
