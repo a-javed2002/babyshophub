@@ -401,7 +401,7 @@ class ProductSlider extends StatelessWidget {
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             image: DecorationImage(
-                                image: NetworkImage(product['imageUrls']),
+                                image: NetworkImage(product['imageUrls'][0]),
                                 fit: BoxFit.cover)),
                         child: Container(
                           padding: EdgeInsets.all(10),

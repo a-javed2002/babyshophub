@@ -248,7 +248,7 @@ class _CategoryPageState extends State<CategoryPage> {
                     borderRadius: BorderRadius.circular(10),
                     image: DecorationImage(
                       image: NetworkImage(
-                        product['imageUrls'],
+                        product['imageUrls'][0],
                       ),
                       fit: BoxFit.cover,
                     ),

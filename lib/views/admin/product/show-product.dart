@@ -38,7 +38,7 @@ class ShowProduct extends StatelessWidget {
                 title: Text("${product['name']} === ${product['timestamp']} === ${product['last_update_date']} === ${product['category_id_fk']}"),
                 subtitle: Text("${product['description']} === ${product['price']} === ${product['quantity']} === ${product['status']}"),
                 leading: FutureBuilder<String>(
-                  future: _getImageUrl(product['imageUrls']),
+                  future: _getImageUrl(product['imageUrls'][0]),
                   builder: (context, imageUrlSnapshot) {
                     if (imageUrlSnapshot.connectionState == ConnectionState.waiting) {
                       return CircularProgressIndicator();
@@ -111,7 +111,7 @@ class ShowProduct extends StatelessWidget {
     if (confirmDelete) {
       try {
         // Delete associated images from Firebase Storage
-        await _deleteProductImages(category['imageUrls']);
+        await _deleteProductImages(category['imageUrls'][0]);
         
         // Delete the category from Firestore
         await FirebaseFirestore.instance.collection(productsCollection).doc(category.id).delete();

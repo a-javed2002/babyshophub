@@ -120,19 +120,27 @@ class _ProductDetailsState extends State<ProductDetails> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // buildImageSlider(productDetails['imageUrls']),
+                  buildImageSlider(productDetails['imageUrls']),
                   SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          productDetails['name'],
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                              productDetails['name'],
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(onPressed: (){
+                              _sendMessage(imageUrl: productDetails['imageUrls'][0],msg: "What You Want To Know?",sender_id: productDetails['addedBy']);
+                            }, icon: Icon(Icons.chat_bubble))
+                          ],
                         ),
                         SizedBox(height: 8),
                         Row(

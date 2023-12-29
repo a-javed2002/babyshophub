@@ -26,9 +26,8 @@ class _AddProductState extends State<AddProduct> {
   late String _description;
   late double _price;
   late int _quantity;
-  late String _selectedCategoryId = ""; // Add this for the selected category
-  FilePickerResult? result;
-  late File _selectedImage;
+  late String _selectedCategoryId = "";
+  List<PlatformFile> selectedFiles = [];
 
   List<Map<String, dynamic>> _categories = [];
   Map<String, dynamic>? _selectedCategory;
@@ -36,7 +35,6 @@ class _AddProductState extends State<AddProduct> {
   @override
   void initState() {
     super.initState();
-    // Fetch categories when the widget initializes
     _fetchCategories();
   }
 
@@ -52,59 +50,177 @@ class _AddProductState extends State<AddProduct> {
         }).toList();
       });
       if (_categories.isNotEmpty) {
-        // Set the ID of the default selected category
         _selectedCategoryId = _categories[0]['id'];
-        _selectedCategory = _categories[0]['name'];
+        _selectedCategory = _categories[0];
       }
       print("Categories are:");
       print(_categories);
     } catch (e) {
       print('Error fetching categories: $e');
-      // Handle the error as needed
     }
   }
 
-  Future<void> _getImage() async {
+  Future<void> _getImages() async {
     try {
-      result = await FilePicker.platform.pickFiles();
-      if (result != null) {
-        _selectedImage =
-            File(result!.files.single.path!); // Store the selected image
+      FilePickerResult? pickedFiles = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
+      );
+
+      if (pickedFiles != null && pickedFiles.files.isNotEmpty) {
+        print("Files Selected: ${pickedFiles.files.length}");
+
+        setState(() {
+          selectedFiles = pickedFiles.files;
+        });
+      } else {
+        print("No files selected.");
       }
-      print("File Selected!");
-      setState(() {}); // Add setState to update the UI after selecting a file
     } catch (e) {
-      print("Error picking file: $e");
+      print("Error picking files: $e");
     }
   }
 
   Widget getImageWidget() {
-    return result != null && result!.files.isNotEmpty
+    return selectedFiles.isNotEmpty
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(result!.files.single.name),
+              Text('Selected Images:'),
               SizedBox(height: 8),
-              Image.file(_selectedImage,
-                  height: 100, width: 100), // Show the selected image
-              SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    result = null;
-                    _selectedImage = File(''); // Clear the selected image
-                  });
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: selectedFiles.length,
+                itemBuilder: (context, index) {
+                  final file = selectedFiles[index];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(file.name),
+                      SizedBox(height: 8),
+                      Image.file(File(file.path!),
+                          height: 100, width: 100),
+                      SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedFiles.removeAt(index);
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.red,
+                        ),
+                        child: Text(
+                          'Remove',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  );
                 },
-                style: ElevatedButton.styleFrom(
-                    primary: Colors.red), // Change button color to red
-                child: Text(
-                  'Remove',
-                  style: TextStyle(color: Colors.white),
-                ),
               ),
             ],
           )
         : Container();
+  }
+
+  Future<List<String?>> _uploadImagesToStorage() async {
+    List<String?> imageUrls = [];
+    try {
+      for (var file in selectedFiles) {
+        String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+        String uniqueFileName = '$timestamp${file.name.replaceAll(" ", "_")}';
+
+        firebase_storage.Reference storageReference =
+            firebase_storage.FirebaseStorage.instance
+                .ref()
+                .child("product_images/$uniqueFileName");
+
+        await storageReference.putData(file.bytes!);
+
+        imageUrls.add(await storageReference.getDownloadURL());
+      }
+      return imageUrls;
+    } catch (e) {
+      print('Error uploading images to storage: $e');
+      ToastWidget.show(
+        message: 'Error uploading images. Please try again.',
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return [];
+    }
+  }
+
+  void _submitForm() {
+    if (_formKey.currentState!.validate() && selectedFiles.isNotEmpty) {
+      _formKey.currentState!.save();
+      _addToFirestore();
+    }
+  }
+
+  void _addToFirestore() async {
+    bool isDuplicate = await _checkDuplicateProduct();
+
+    if (isDuplicate) {
+      print('Duplicate product name');
+      ToastWidget.show(
+        message: 'Duplicate product name. Please choose a different name.',
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+      );
+    } else {
+      List<String?> imageUrls = await _uploadImagesToStorage();
+      final FirebaseAuth _auth = FirebaseAuth.instance;
+      final User? user = _auth.currentUser;
+      String currentUserUid = user!.uid;
+
+      FirebaseFirestore.instance.collection(productsCollection).add({
+        'name': _productName,
+        'description': _description,
+        'price': _price,
+        'quantity': _quantity,
+        'category_id_fk': _selectedCategoryId,
+        'imageUrls': imageUrls,
+        'status': 1,
+        'feedback': [],
+        'addedBy': currentUserUid,
+        'timestamp': FieldValue.serverTimestamp(),
+        'last_update_date': FieldValue.serverTimestamp(),
+      }).then((value) {
+        print('Product added to Firestore');
+        _formKey.currentState!.reset();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ShowProduct()),
+        );
+      }).catchError((error) {
+        print('Error adding product to Firestore: $error');
+        ToastWidget.show(
+          message: 'Error adding product to Firestore: $error',
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.grey,
+          textColor: Colors.white,
+        );
+      });
+    }
+  }
+
+  Future<bool> _checkDuplicateProduct() async {
+    try {
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection(productsCollection)
+          .where('name', isEqualTo: _productName)
+          .get();
+
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking duplicate product: $e');
+      return false;
+    }
   }
 
   @override
@@ -177,7 +293,6 @@ class _AddProductState extends State<AddProduct> {
                           value: _selectedCategory ??
                               (_categories.isNotEmpty ? _categories[0] : null),
                           onChanged: (Map<String, dynamic>? newValue) {
-                            // Handle the selected category
                             setState(() {
                               _selectedCategory = newValue;
                               _selectedCategoryId = newValue?['id'] ?? '';
@@ -199,24 +314,20 @@ class _AddProductState extends State<AddProduct> {
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  _getImage();
+                  _getImages();
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: result != null && result!.files.isNotEmpty
-                      ? Colors.red
-                      : Colors.blue,
+                  primary: selectedFiles.isNotEmpty ? Colors.red : Colors.blue,
                 ),
                 child: Text(
-                  result != null && result!.files.isNotEmpty
-                      ? 'Change Image'
-                      : 'Select Image',
+                  selectedFiles.isNotEmpty ? 'Change Images' : 'Select Images',
                   style: TextStyle(
                     color: Colors.white,
                   ),
                 ),
               ),
               SizedBox(height: 16),
-              getImageWidget(),
+              // getImageWidget(),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
@@ -229,126 +340,5 @@ class _AddProductState extends State<AddProduct> {
         ),
       ),
     );
-  }
-
-  Future<void> _getImages() async {
-    try {
-      result = await FilePicker.platform.pickFiles();
-      if (result != null) {
-        _selectedImage =
-            File(result!.files.single.path!); // Store the selected image
-      }
-      print("File Selected!");
-      setState(() {}); // Add setState to update the UI after selecting a file
-    } catch (e) {
-      print("Error picking file: $e");
-    }
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState!.validate() && result != null) {
-      _formKey.currentState!.save();
-
-      // Now you can add the data to Firestore
-      _addToFirestore();
-    }
-  }
-
-  Future<String?> _uploadImageToStorage() async {
-    try {
-      String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      String uniqueFileName =
-          '$timestamp${result!.files.single.name.replaceAll(" ", "_")}';
-
-      if (result != null && result!.files.isNotEmpty) {
-        await Firebase.initializeApp();
-        firebase_storage.Reference storageReference = firebase_storage
-            .FirebaseStorage.instance
-            .ref()
-            .child("product_images/${uniqueFileName}");
-
-        await storageReference.putData(result!.files.single.bytes!);
-
-        return await storageReference.getDownloadURL();
-      }
-    } catch (e) {
-      print('Error uploading image to storage: $e');
-      // Provide a user-friendly error message
-      ToastWidget.show(
-        message: 'Error uploading image. Please try again.',
-        gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-      return null;
-    }
-  }
-
-  void _addToFirestore() async {
-    // Check if the product name already exists
-    bool isDuplicate = await _checkDuplicateProduct();
-
-    if (isDuplicate) {
-      // Handle duplicate product name
-      print('Duplicate product name');
-      ToastWidget.show(
-        message: 'Duplicate product name. Please choose a different name.',
-        gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.grey,
-        textColor: Colors.white,
-      );
-    } else {
-      // Upload the images to Firebase Storage
-      String? imageUrl = await _uploadImageToStorage();
-      final FirebaseAuth _auth = FirebaseAuth.instance;
-      final User? user = _auth.currentUser;
-      String currentUserUid = user!.uid;
-      // Add the data to Firestore
-      FirebaseFirestore.instance.collection(productsCollection).add({
-        'name': _productName,
-        'description': _description,
-        'price': _price,
-        'quantity': _quantity,
-        // 'category_id_fk': "IV9vIA3sIxrpiV5UB8zX",
-        'category_id_fk': _selectedCategoryId,
-        'imageUrls': imageUrl,
-        'status': 1,
-        'feedback': [],
-        'addedBy': currentUserUid,
-        'timestamp': FieldValue.serverTimestamp(),
-        'last_update_date': FieldValue.serverTimestamp(),
-      }).then((value) {
-        // Handle success
-        print('Product added to Firestore');
-        _formKey.currentState!.reset();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ShowProduct()),
-        );
-      }).catchError((error) {
-        // Handle error
-        print('Error adding product to Firestore: $error');
-        ToastWidget.show(
-          message: 'Error adding product to Firestore: $error',
-          gravity: ToastGravity.CENTER,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-        );
-      });
-    }
-  }
-
-  Future<bool> _checkDuplicateProduct() async {
-    try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection(productsCollection)
-          .where('name', isEqualTo: _productName)
-          .get();
-
-      return querySnapshot.docs.isNotEmpty;
-    } catch (e) {
-      print('Error checking duplicate product: $e');
-      return false; // Assume no duplicate if there is an error
-    }
   }
 }

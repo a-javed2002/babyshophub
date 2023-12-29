@@ -137,7 +137,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                                   decoration: BoxDecoration(
                                     image: DecorationImage(
                                       image: NetworkImage(
-                                          productData['imageUrls']),
+                                          productData['imageUrls'][0]),
                                       fit: BoxFit.cover,
                                     ),
                                   ),

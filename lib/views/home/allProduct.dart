@@ -140,7 +140,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                                 child: ListTile(
                                   leading: CircleAvatar(
                                     backgroundImage:
-                                        NetworkImage(productData['imageUrls']),
+                                        NetworkImage(productData['imageUrls'][0]),
                                   ),
                                   title: Text(productData['name']),
                                   subtitle: Column(
