@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:babyshophub/consts/colors.dart';
 import 'package:babyshophub/views/OnBoarding/onBoarding.dart';
+import 'package:babyshophub/views/Profile/reset-password.dart';
 import 'package:babyshophub/views/admin/dashboard.dart';
 import 'package:babyshophub/views/common/loader.dart';
 import 'package:babyshophub/views/common/pop-up.dart';
@@ -376,38 +377,44 @@ class _LoginPageState extends State<LoginPage> {
                       FadeInUp(
                           duration: Duration(milliseconds: 1900),
                           child: isLoading
-                                  ? CustomLoader()
-                                  :  GestureDetector(
-                            onTap: () {
-                                if (_emailController.text.isNotEmpty &&
-                                    _passwordController.text.isNotEmpty) {
-                                  login(_emailController.text,
-                                      _passwordController.text);
-                                } else {
-                                  CustomPopup(
-                                    message: 'Fill All Fields',
-                                    isSuccess: false,
-                                  );
-                                }
-                              },
-                            child: Container(
-                              height: 50,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                gradient: LinearGradient(
-                                  colors: (_emailController.text.isNotEmpty &&
-                                          _passwordController.text.isNotEmpty)
-                                      ? [
-                                          Color.fromRGBO(34, 40, 138, 0.6),
-                                          Color.fromRGBO(41, 51, 233, 0.6),
-                                        ]
-                                      : [
-                                          Color.fromRGBO(143, 148, 251, 1),
-                                          Color.fromRGBO(143, 148, 251, .6),
-                                        ],
-                                ),
-                              ),
-                              child: Center(
+                              ? CustomLoader()
+                              : GestureDetector(
+                                  onTap: () {
+                                    if (_emailController.text.isNotEmpty &&
+                                        _passwordController.text.isNotEmpty) {
+                                      login(_emailController.text,
+                                          _passwordController.text);
+                                    } else {
+                                      CustomPopup(
+                                        message: 'Fill All Fields',
+                                        isSuccess: false,
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      gradient: LinearGradient(
+                                        colors:
+                                            (_emailController.text.isNotEmpty &&
+                                                    _passwordController
+                                                        .text.isNotEmpty)
+                                                ? [
+                                                    Color.fromRGBO(
+                                                        34, 40, 138, 0.6),
+                                                    Color.fromRGBO(
+                                                        41, 51, 233, 0.6),
+                                                  ]
+                                                : [
+                                                    Color.fromRGBO(
+                                                        143, 148, 251, 1),
+                                                    Color.fromRGBO(
+                                                        143, 148, 251, .6),
+                                                  ],
+                                      ),
+                                    ),
+                                    child: Center(
                                       child: Text(
                                         "Login",
                                         style: TextStyle(
@@ -416,23 +423,35 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                       ),
                                     ),
-                            ),
-                          )),
+                                  ),
+                                )),
                       SizedBox(
                         height: 10,
                       ),
                       FadeInUp(
                           duration: Duration(milliseconds: 2000),
-                          child: Text(
-                            "Forgot Password?",
-                            style: TextStyle(
-                                color: Color.fromRGBO(143, 148, 251, 1)),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ResetPasswordScreen()),
+                              );
+                            },
+                            child: Text(
+                              "Forgot Password?",
+                              style: TextStyle(
+                                  color: Color.fromRGBO(143, 148, 251, 1)),
+                            ),
                           )),
                       FadeInUp(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Don't have an account?",style: TextStyle(color: Color.fromRGBO(0, 0, 0, 0.6))),
+                            Text("Don't have an account?",
+                                style: TextStyle(
+                                    color: Color.fromRGBO(0, 0, 0, 0.6))),
                             TextButton(
                               onPressed: () {
                                 Navigator.push(
@@ -441,7 +460,11 @@ class _LoginPageState extends State<LoginPage> {
                                       builder: (context) => SignUpPage()),
                                 );
                               },
-                              child: Text('Sign Up',style: TextStyle(color: Color.fromRGBO(34, 40, 138, 0.6)),),
+                              child: Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                    color: Color.fromRGBO(34, 40, 138, 0.6)),
+                              ),
                             ),
                           ],
                         ),

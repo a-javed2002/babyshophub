@@ -1,138 +1,169 @@
-import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
 
-enum OrderStatus {
-  Pending,
-  Submitted,
-  Processing,
-  Shipped,
-  Delivered,
-}
+// enum OrderStatus {
+//   pending,
+//   submitted,
+//   processing,
+//   shipped,
+//   delivered,
+// }
 
-class OrderStatusBar extends StatefulWidget {
-  final OrderStatus initialStatus;
+// class OrderStatusBar extends StatefulWidget {
+//   final OrderStatus initialStatus;
 
-  const OrderStatusBar({Key? key, this.initialStatus = OrderStatus.Pending}) : super(key: key);
+//   const OrderStatusBar({Key? key, this.initialStatus = OrderStatus.pending})
+//       : super(key: key);
 
-  @override
-  _OrderStatusBarState createState() => _OrderStatusBarState();
-}
+//   static OrderStatus getStatusEnum(String status) {
+//     switch (status.toLowerCase()) {
+//       case 'pending':
+//         return OrderStatus.pending;
+//       case 'submitted':
+//         return OrderStatus.submitted;
+//       case 'processing':
+//         return OrderStatus.processing;
+//       case 'shipped':
+//         return OrderStatus.shipped;
+//       case 'delivered':
+//         return OrderStatus.delivered;
+//       default:
+//         return OrderStatus
+//             .pending; // Default to pending if status is unrecognized
+//     }
+//   }
 
-class _OrderStatusBarState extends State<OrderStatusBar> {
-  double _statusBarHeight = 0.0;
-  OrderStatus _currentStatus = OrderStatus.Pending;
+//   @override
+//   _OrderStatusBarState createState() => _OrderStatusBarState();
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 500),
-      height: _statusBarHeight,
-      color: _getStatusColor(),
-      child: Center(
-        child: Text(
-          _getStatusText(),
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-    );
-  }
+// class _OrderStatusBarState extends State<OrderStatusBar> {
+//   double _statusBarHeight = 0.0;
+//   OrderStatus _currentStatus = OrderStatus.pending;
 
-  void toggleStatusBar(OrderStatus newStatus) {
-    setState(() {
-      _statusBarHeight = _statusBarHeight == 0.0 ? 100.0 : 0.0;
-      _currentStatus = newStatus;
-    });
-  }
+//   @override
+//   void initState() {
+//     // TODO: implement initState
+//     super.initState();
+//     print(widget.initialStatus);
+//   }
 
-  Color _getStatusColor() {
-    switch (_currentStatus) {
-      case OrderStatus.Pending:
-        return Colors.yellow;
-      case OrderStatus.Submitted:
-        return Colors.green;
-      case OrderStatus.Processing:
-        return Colors.blue;
-      case OrderStatus.Shipped:
-        return Colors.orange;
-      case OrderStatus.Delivered:
-        return Colors.teal;
-    }
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return AnimatedContainer(
+//       duration: const Duration(milliseconds: 500),
+//       height: _statusBarHeight,
+//       color: _getStatusColor(),
+//       child: Center(
+//         child: Text(
+//           _getStatusText(),
+//           style: const TextStyle(color: Colors.white),
+//         ),
+//       ),
+//     );
+//   }
 
-  String _getStatusText() {
-    switch (_currentStatus) {
-      case OrderStatus.Pending:
-        return 'Pending';
-      case OrderStatus.Submitted:
-        return 'Submitted Successfully!';
-      case OrderStatus.Processing:
-        return 'Processing';
-      case OrderStatus.Shipped:
-        return 'Shipped';
-      case OrderStatus.Delivered:
-        return 'Delivered';
-    }
-  }
-}
+//   void toggleStatusBar(OrderStatus newStatus) {
+//     setState(() {
+//       _statusBarHeight = _statusBarHeight == 0.0 ? 100.0 : 0.0;
+//       _currentStatus = newStatus;
+//     });
+//   }
 
-class OrderScreen extends StatefulWidget {
-  @override
-  _OrderScreenState createState() => _OrderScreenState();
-}
+//   Color _getStatusColor() {
+//     switch (_currentStatus) {
+//       case OrderStatus.pending:
+//         return Colors.yellow;
+//       case OrderStatus.submitted:
+//         return Colors.green;
+//       case OrderStatus.processing:
+//         return Colors.blue;
+//       case OrderStatus.shipped:
+//         return Colors.orange;
+//       case OrderStatus.delivered:
+//         return Colors.teal;
+//     }
+//   }
 
-class _OrderScreenState extends State<OrderScreen> {
-  final GlobalKey<_OrderStatusBarState> _orderStatusBarKey =
-      GlobalKey<_OrderStatusBarState>();
+//   String _getStatusText() {
+//     switch (_currentStatus) {
+//       case OrderStatus.pending:
+//         return 'pending';
+//       case OrderStatus.submitted:
+//         return 'Submitted Successfully!';
+//       case OrderStatus.processing:
+//         return 'Processing';
+//       case OrderStatus.shipped:
+//         return 'Shipped';
+//       case OrderStatus.delivered:
+//         return 'Delivered';
+//     }
+//   }
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Screen'),
-      ),
-      body: Column(
-        children: [
-          // Your order content goes here
-          // ...
+// class OrderScreen extends StatefulWidget {
+//   @override
+//   _OrderScreenState createState() => _OrderScreenState();
+// }
 
-          // Add the animated status bar
-          OrderStatusBar(
-            key: _orderStatusBarKey,
-            initialStatus: OrderStatus.Pending,
-          ),
+// class _OrderScreenState extends State<OrderScreen> {
+//   final GlobalKey<_OrderStatusBarState> _orderStatusBarKey =
+//       GlobalKey<_OrderStatusBarState>();
 
-          // Add buttons to toggle the status bar to different statuses
-          ElevatedButton(
-            onPressed: () {
-              _orderStatusBarKey.currentState?.toggleStatusBar(OrderStatus.Pending);
-            },
-            child: const Text('Pending'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _orderStatusBarKey.currentState?.toggleStatusBar(OrderStatus.Submitted);
-            },
-            child: const Text('Submitted'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _orderStatusBarKey.currentState?.toggleStatusBar(OrderStatus.Processing);
-            },
-            child: const Text('Processing'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _orderStatusBarKey.currentState?.toggleStatusBar(OrderStatus.Shipped);
-            },
-            child: const Text('Shipped'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _orderStatusBarKey.currentState?.toggleStatusBar(OrderStatus.Delivered);
-            },
-            child: const Text('Delivered'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('Order Screen'),
+//       ),
+//       body: Column(
+//         children: [
+//           // Your order content goes here
+//           // ...
+
+//           // Add the animated status bar
+//           OrderStatusBar(
+//             key: _orderStatusBarKey,
+//             initialStatus: OrderStatus.pending,
+//           ),
+
+//           // Add buttons to toggle the status bar to different statuses
+//           ElevatedButton(
+//             onPressed: () {
+//               _orderStatusBarKey.currentState
+//                   ?.toggleStatusBar(OrderStatus.pending);
+//             },
+//             child: const Text('Pending'),
+//           ),
+//           ElevatedButton(
+//             onPressed: () {
+//               _orderStatusBarKey.currentState
+//                   ?.toggleStatusBar(OrderStatus.submitted);
+//             },
+//             child: const Text('Submitted'),
+//           ),
+//           ElevatedButton(
+//             onPressed: () {
+//               _orderStatusBarKey.currentState
+//                   ?.toggleStatusBar(OrderStatus.processing);
+//             },
+//             child: const Text('Processing'),
+//           ),
+//           ElevatedButton(
+//             onPressed: () {
+//               _orderStatusBarKey.currentState
+//                   ?.toggleStatusBar(OrderStatus.shipped);
+//             },
+//             child: const Text('Shipped'),
+//           ),
+//           ElevatedButton(
+//             onPressed: () {
+//               _orderStatusBarKey.currentState
+//                   ?.toggleStatusBar(OrderStatus.delivered);
+//             },
+//             child: const Text('Delivered'),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

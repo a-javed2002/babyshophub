@@ -1,4 +1,6 @@
 import 'package:babyshophub/consts/consts.dart';
+import 'package:babyshophub/views/Chats/chats.dart';
+import 'package:babyshophub/views/Product/buy-now.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:babyshophub/views/common/user-scaffold.dart';
@@ -137,9 +139,19 @@ class _ProductDetailsState extends State<ProductDetails> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            IconButton(onPressed: (){
-                              _sendMessage(imageUrl: productDetails['imageUrls'][0],msg: "What You Want To Know?",sender_id: productDetails['addedBy']);
-                            }, icon: Icon(Icons.chat_bubble))
+                            IconButton(
+                                onPressed: () {
+                                  _sendMessage(
+                                      imageUrl: productDetails['imageUrls'][0],
+                                      msg: "What You Want To Know?",
+                                      sender_id: productDetails['addedBy']);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ChatListScreen()),
+                                  );
+                                },
+                                icon: Icon(Icons.chat_bubble))
                           ],
                         ),
                         SizedBox(height: 8),
@@ -203,7 +215,18 @@ class _ProductDetailsState extends State<ProductDetails> {
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                // Handle buy now action
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return ProductDetailsPopup(
+                                      productId: widget.productId,
+                                      productName: productDetails['name'],
+                                      productPrice: productDetails['price'],
+                                      productImage: productDetails['imageUrls']
+                                          [0],
+                                    );
+                                  },
+                                );
                                 showToast('Buy Now');
                               },
                               child: Lottie.asset(
@@ -276,29 +299,83 @@ class _ProductDetailsState extends State<ProductDetails> {
     );
   }
 
-  void _sendMessage({String? imageUrl,String? msg,String?sender_id}) async {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    // String messageText = _messageController.text.trim();
-    // if (messageText.isNotEmpty || imageUrl != null) {
+  void _sendMessage({String? imageUrl, String? msg, String? sender_id}) async {
+    try {
+      final FirebaseAuth _auth = FirebaseAuth.instance;
+
+      // Ensure required parameters are not null or empty
+      if (imageUrl == null ||
+          msg == null ||
+          sender_id == null ||
+          imageUrl.isEmpty ||
+          msg.isEmpty ||
+          sender_id.isEmpty) {
+        print('Invalid parameters for sending message.');
+        return;
+      }
+
+      // Build the initial chat ID using the sender and recipient UIDs
+      String chatId = _getChatId(
+        currentUserUid: sender_id,
+        recipientUid: _auth.currentUser!.uid,
+      );
+
+      // Check if the document with the initial chat ID exists
+      bool chatIdExists = await _doesChatIdExist(chatId);
+
+      // If the document does not exist, swap the order of IDs and try again
+      if (!chatIdExists) {
+        print("Pair Does Not Exist");
+        chatId = _getChatId(
+          currentUserUid: _auth.currentUser!.uid,
+          recipientUid: sender_id,
+        );
+      }
+
+      // Add the message to Firestore
       await FirebaseFirestore.instance
           .collection('chats')
-          .doc(_getChatId(currentUserUid: sender_id,recipientUid: _auth.currentUser!.uid))
+          .doc(chatId)
           .collection('messages')
           .add({
-            'sender': sender_id,
-            'text': msg,
-            'imageUrl': imageUrl,
-            'timestamp': FieldValue.serverTimestamp(),
-          });
+        'sender': sender_id,
+        'text': msg,
+        'imageUrl': imageUrl,
+        'status': 1,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
 
+      // Clear any necessary controllers or states
       // _messageController.clear();
       // setState(() {
       //   _isEmojiPickerVisible = false;
       // });
-    // }
+    } catch (e) {
+      print('Error sending message: $e');
+      // Handle the error (e.g., show a snackbar or log the error)
+    }
   }
 
-  String _getChatId({required String?currentUserUid,required String?recipientUid}) {
+  Future<bool> _doesChatIdExist(String chatId) async {
+    try {
+      // Check if the document with the specified chat ID exists
+      DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+          await FirebaseFirestore.instance
+              .collection('chats')
+              .doc(chatId)
+              .get();
+
+      // Return true if the document exists, false otherwise
+      return documentSnapshot.exists;
+    } catch (e) {
+      print('Error checking if chatId exists: $e');
+      // Handle the error (e.g., show a snackbar or log the error)
+      return false;
+    }
+  }
+
+  String _getChatId(
+      {required String? currentUserUid, required String? recipientUid}) {
     // Create a unique chat ID based on user UIDs
     List<String> participantUids = [currentUserUid!, recipientUid!];
     participantUids.sort();
@@ -421,41 +498,99 @@ class _ProductDetailsState extends State<ProductDetails> {
   Future<void> submitReview(String productId) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+
       if (user != null) {
-        // Get the user ID
         final userId = user.uid;
 
-        // Prepare the review data
-        final reviewData = {
-          'userId': userId,
-          'message': reviewMessageController.text,
-          'rating': rating,
-          // Add other fields if needed
-        };
+        // Check if the user has bought the product and if they have submitted more than 2 reviews
+        bool hasBoughtProduct = await hasUserBoughtProduct(userId, productId);
+        int userReviewCount = await getUserReviewCount(userId,productId);
 
-        // Submit the review to the "reviews" subcollection
-        await FirebaseFirestore.instance
-            .collection(productsCollection)
-            .doc(productId)
-            .collection('reviews')
-            .add(reviewData);
+        if (hasBoughtProduct && userReviewCount < 2) {
+          // Prepare the review data
+          final reviewData = {
+            'userId': userId,
+            'message': reviewMessageController.text,
+            'rating': rating,
+            // Add other fields if needed
+          };
 
-        // Clear the form after submission
-        reviewMessageController.clear();
-        setState(() {
-          rating = 0.0;
-        });
+          // Submit the review to the "reviews" subcollection
+          await FirebaseFirestore.instance
+              .collection(productsCollection)
+              .doc(productId)
+              .collection('reviews')
+              .add(reviewData);
 
-        // Optional: Display a success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Review submitted successfully!'),
-          ),
-        );
+          // Clear the form after submission
+          reviewMessageController.clear();
+          setState(() {
+            rating = 0.0;
+          });
+
+          // Optional: Display a success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Review submitted successfully!'),
+            ),
+          );
+        } else {
+          // Display an error message
+          String errorMessage;
+          if (!hasBoughtProduct) {
+            errorMessage =
+                'You can only review products you have bought and they are delivered.';
+          } else {
+            errorMessage = 'You can submit up to 2 reviews for this product.';
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+            ),
+          );
+        }
       }
     } catch (e) {
       // Handle errors
       print('Error submitting review: $e');
+    }
+  }
+
+  Future<bool> hasUserBoughtProduct(String userId, String productId) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> ordersSnapshot =
+          await FirebaseFirestore.instance
+              .collection('orders')
+              .where('userId', isEqualTo: userId)
+              .where('productId', isEqualTo: productId)
+              .where('status', isEqualTo: 'delivered')
+              .get();
+
+      return ordersSnapshot.docs.isNotEmpty;
+    } catch (e) {
+      // Handle errors
+      print('Error checking if user has bought the product: $e');
+      return false;
+    }
+  }
+
+  Future<int> getUserReviewCount(String userId, String productId) async {
+    try {
+      // Query the "reviews" subcollection for the user's reviews on the specified product
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection(productsCollection)
+          .doc(productId)
+          .collection('reviews')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      // Return the count of reviews
+      return querySnapshot.size;
+    } catch (e) {
+      // Handle errors
+      print('Error getting user review count: $e');
+      return 0; // Return 0 in case of an error
     }
   }
 }

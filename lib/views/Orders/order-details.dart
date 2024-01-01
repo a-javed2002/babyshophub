@@ -1,8 +1,15 @@
-import 'package:babyshophub/views/Orders/order-status.dart';
 import 'package:babyshophub/views/Product/product-details.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:babyshophub/consts/consts.dart';
+
+enum OrderStatus {
+  pending,
+  submitted,
+  processing,
+  shipped,
+  delivered,
+}
 
 class MyOrderDetailsScreen extends StatefulWidget {
   final String orderId;
@@ -14,7 +21,8 @@ class MyOrderDetailsScreen extends StatefulWidget {
 }
 
 class _MyOrderDetailsScreenState extends State<MyOrderDetailsScreen> {
-
+  final GlobalKey<_OrderStatusBarState> _orderStatusBarKey =
+      GlobalKey<_OrderStatusBarState>();
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +52,10 @@ class _MyOrderDetailsScreenState extends State<MyOrderDetailsScreen> {
                   // Inside the FutureBuilder's builder function
                   return ListView(
                     children: [
-                      OrderStatusBar(),
+                      OrderStatusBar(
+                          key: _orderStatusBarKey,
+                          initialStatus: OrderStatusBar.getStatusEnum(
+                              orderData['status'])),
                       ListTile(
                         title: Text('Order ID: ${widget.orderId}'),
                         subtitle: Text('Date: ${orderData['timestamp']}'),
@@ -64,8 +75,8 @@ class _MyOrderDetailsScreenState extends State<MyOrderDetailsScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      ProductDetails(productId: orderItem['productId']),
+                                  builder: (context) => ProductDetails(
+                                      productId: orderItem['productId']),
                                 ),
                               );
                             },
@@ -117,6 +128,102 @@ class _MyOrderDetailsScreenState extends State<MyOrderDetailsScreen> {
       print('Error fetching order details: $e');
       // Return an empty DocumentSnapshot in case of an error
       return null;
+    }
+  }
+}
+
+class OrderStatusBar extends StatefulWidget {
+  final OrderStatus initialStatus;
+
+  const OrderStatusBar({Key? key, this.initialStatus = OrderStatus.pending})
+      : super(key: key);
+
+  static OrderStatus getStatusEnum(String status) {
+    print("in getStatusEnum $status");
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return OrderStatus.pending;
+      case 'submitted':
+        return OrderStatus.submitted;
+      case 'processing':
+        return OrderStatus.processing;
+      case 'shipped':
+        return OrderStatus.shipped;
+      case 'delivered':
+        return OrderStatus.delivered;
+      default:
+        return OrderStatus
+            .pending; // Default to pending if status is unrecognized
+    }
+  }
+
+  @override
+  _OrderStatusBarState createState() => _OrderStatusBarState();
+}
+class _OrderStatusBarState extends State<OrderStatusBar> {
+  double _statusBarHeight = 0.0;
+  OrderStatus _currentStatus = OrderStatus.pending;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set initial status
+    _currentStatus = widget.initialStatus;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          height: _statusBarHeight,
+          color: _getStatusColor(),
+          child: Center(
+            child: Text(
+              _getStatusText(),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void toggleStatusBar(OrderStatus newStatus) {
+    setState(() {
+      _statusBarHeight = _statusBarHeight == 0.0 ? 100.0 : 0.0;
+      _currentStatus = newStatus;
+    });
+  }
+
+  Color _getStatusColor() {
+    switch (_currentStatus) {
+      case OrderStatus.pending:
+        return Colors.yellow;
+      case OrderStatus.submitted:
+        return Colors.green;
+      case OrderStatus.processing:
+        return Colors.blue;
+      case OrderStatus.shipped:
+        return Colors.orange;
+      case OrderStatus.delivered:
+        return Colors.teal;
+    }
+  }
+
+  String _getStatusText() {
+    switch (_currentStatus) {
+      case OrderStatus.pending:
+        return 'pending';
+      case OrderStatus.submitted:
+        return 'Submitted Successfully!';
+      case OrderStatus.processing:
+        return 'Processing';
+      case OrderStatus.shipped:
+        return 'Shipped';
+      case OrderStatus.delivered:
+        return 'Delivered';
     }
   }
 }

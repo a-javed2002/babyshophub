@@ -70,6 +70,7 @@ class _SignUpPageState extends State<SignUpPage> {
         'cnic': _cnic,
         'email': _email,
         'role': _selectedRole,
+        'imageUrl':'',
         'wishlist': [],
         'orders': [],
         'timestamp': FieldValue.serverTimestamp(),

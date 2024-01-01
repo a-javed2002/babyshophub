@@ -1,5 +1,6 @@
 import 'package:babyshophub/controllers/auth_controller.dart';
 import 'package:babyshophub/views/OnBoarding/onBoarding.dart';
+import 'package:babyshophub/views/Profile/reset-password.dart';
 import 'package:babyshophub/views/authentication/login.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -56,10 +57,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             GestureDetector(
               onTap: () async {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => OnBoardingScreen(),
+                    builder: (context) => ResetPasswordScreen(),
                   ),
                 );
               },

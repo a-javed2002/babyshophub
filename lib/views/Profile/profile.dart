@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/controllers/cart_controller.dart';
 import 'package:babyshophub/views/Orders/orders.dart';
@@ -5,9 +7,14 @@ import 'package:babyshophub/views/Product/cart.dart';
 import 'package:babyshophub/views/Product/wishlist.dart';
 import 'package:babyshophub/views/Profile/settings.dart';
 import 'package:babyshophub/views/admin/order/orders.dart';
+import 'package:babyshophub/views/common/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyProfile extends StatefulWidget {
@@ -27,12 +34,78 @@ class _MyProfileState extends State<MyProfile> {
   String role = '';
   String cnic = '';
   String imageUrl = '';
+  bool temp = false;
   String timestamp = '';
   List orders = [];
   List wishlist = [];
   List address = [];
   List contact = [];
   List cart = [];
+  FilePickerResult? result;
+  late File _selectedImage;
+
+  Future<String?> _uploadImageToStorage() async {
+    try {
+      String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      String uniqueFileName =
+          '$timestamp${result!.files.single.name.replaceAll(" ", "_")}';
+
+      if (result != null && result!.files.isNotEmpty) {
+        await Firebase.initializeApp();
+        firebase_storage.Reference storageReference = firebase_storage
+            .FirebaseStorage.instance
+            .ref()
+            .child("profile_images/${uniqueFileName}");
+
+        await storageReference.putData(result!.files.single.bytes!);
+
+        return await storageReference.getDownloadURL();
+      }
+    } catch (e) {
+      print('Error uploading image to storage: $e');
+      // Provide a user-friendly error message
+      ToastWidget.show(
+        message: 'Error uploading image. Please try again.',
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return null;
+    }
+  }
+
+  Future<void> updateProfileImage({required String newProfileImageUrl}) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        final userId = user.uid;
+
+        // Update the profileImage field in the "users" collection
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .update({
+          'imageUrl': newProfileImageUrl,
+        });
+
+        // Optionally, you can also update the user's profile in FirebaseAuth
+        await user.updateProfile(photoURL: newProfileImageUrl);
+
+        print('ProfileImage updated successfully.');
+// Optional: Display a success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('ProfileImage updated successfully.'),
+          ),
+        );
+        setState(() {});
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error updating profileImage: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -64,6 +137,7 @@ class _MyProfileState extends State<MyProfile> {
           email = userSnapshot['email'];
           role = userSnapshot['role'];
           cnic = userSnapshot['cnic'];
+          temp = userSnapshot['imageUrl'] == "";
           imageUrl = userSnapshot['imageUrl'] == ""
               ? "assets/images/profile.jpg"
               : userSnapshot['imageUrl'];
@@ -157,16 +231,44 @@ class _MyProfileState extends State<MyProfile> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.close,color: textColor,),
+                                    icon: Icon(
+                                      Icons.close,
+                                      color: textColor,
+                                    ),
                                     onPressed: () {
                                       Navigator.pop(context);
                                       print("Dialog closed");
                                     },
                                   ),
                                   Expanded(
-                                    child: Container(
-                                      child: Image.asset(imageUrl),
-                                    )
+                                      child: Container(
+                                    child: temp
+                                        ? Image.asset(imageUrl)
+                                        : Image.network(imageUrl),
+                                  )),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      IconButton(
+                                          onPressed: () async {
+                                            await updateProfileImage(
+                                                newProfileImageUrl: "");
+                                          },
+                                          icon: Icon(
+                                            Icons.remove,
+                                            color: Colors.red,
+                                          )),
+                                      IconButton(
+                                          onPressed: () {
+                                            Navigator.pop(
+                                                context); // Optionally close the pop-up
+                                            showAddImageDialogBox();
+                                          },
+                                          icon: Icon(
+                                            Icons.edit,
+                                            color: Colors.lightBlue,
+                                          )),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -177,9 +279,9 @@ class _MyProfileState extends State<MyProfile> {
                     },
                     child: CircleAvatar(
                       radius: screenWidth * 0.1,
-                      backgroundImage: AssetImage(
-                        "$imageUrl",
-                      ),
+                      backgroundImage: temp
+                          ? AssetImage("$imageUrl")
+                          : NetworkImage("$imageUrl") as ImageProvider<Object>?,
                       backgroundColor: Colors.transparent,
                       child: Container(
                         decoration: BoxDecoration(
@@ -317,13 +419,10 @@ class _MyProfileState extends State<MyProfile> {
                       ? Row(
                           children: [
                             Text("Addresses Are:"),
-                            SizedBox(
-                                width:
-                                    8.0),
+                            SizedBox(width: 8.0),
                             Expanded(
                               child: Container(
-                                height:
-                                    50,
+                                height: 50,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
                                   itemCount: address.length,
@@ -346,17 +445,14 @@ class _MyProfileState extends State<MyProfile> {
                       : Center(
                           child: Text("No Address"),
                         ),
-                        contact.length > 0
+                  contact.length > 0
                       ? Row(
                           children: [
                             Text("Contact Are:"),
-                            SizedBox(
-                                width:
-                                    8.0),
+                            SizedBox(width: 8.0),
                             Expanded(
                               child: Container(
-                                height:
-                                    50,
+                                height: 50,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
                                   itemCount: contact.length,
@@ -385,6 +481,111 @@ class _MyProfileState extends State<MyProfile> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _getImage() async {
+    try {
+      result = await FilePicker.platform.pickFiles();
+      if (result != null) {
+        _selectedImage =
+            File(result!.files.single.path!); // Store the selected image
+      }
+      print("File Selected!");
+      setState(() {}); // Add setState to update the UI after selecting a file
+    } catch (e) {
+      print("Error picking file: $e");
+    }
+  }
+
+  Widget getImageWidget() {
+    return result != null && result!.files.isNotEmpty
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(result!.files.single.name),
+              SizedBox(height: 8),
+              Image.file(_selectedImage,
+                  height: 100, width: 100), // Show the selected image
+              SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    result = null;
+                    _selectedImage = File(''); // Clear the selected image
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                    primary: Colors.red), // Change button color to red
+                child: Text(
+                  'Remove',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          )
+        : Container();
+  }
+
+  void showAddImageDialogBox() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select New Profile'),
+          actions: [
+            // Cancel Button
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+
+            // Add Button
+            TextButton(
+              onPressed: () async {
+                // Upload the image to storage
+                String? imageUrl = await _uploadImageToStorage();
+
+                // Check if imageUrl is not null before further processing
+                if (imageUrl != null) {
+                  // Do something with the imageUrl, e.g., update UI or send to Firestore
+                  print('New profile image URL: $imageUrl');
+                  await updateProfileImage(newProfileImageUrl: imageUrl);
+                }
+
+                // Close the dialog
+                Navigator.pop(context);
+              },
+              child: Text('Add'),
+            ),
+          ],
+          content: Column(
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  _getImage();
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: result != null && result!.files.isNotEmpty
+                      ? Colors.red
+                      : Colors.blue,
+                ),
+                child: Text(
+                  result != null && result!.files.isNotEmpty
+                      ? 'Change Image'
+                      : 'Select Image',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              getImageWidget(),
+            ],
+          ), // Display the image widget or use other UI elements
+        );
+      },
     );
   }
 }

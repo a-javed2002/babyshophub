@@ -380,9 +380,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final List<Map<String, dynamic>> orderItems = widget.selectedProducts;
 
       if (name.isNotEmpty && orderItems.isNotEmpty) {
-        DocumentReference orderRef = await FirebaseFirestore.instance
-            .collection(ordersCollection)
-            .add({
+        final FirebaseAuth _auth = FirebaseAuth.instance;
+        final User? user = _auth.currentUser;
+        dynamic userId = user?.uid;
+        DocumentReference orderRef =
+            await FirebaseFirestore.instance.collection(ordersCollection).add({
+          'userId': userId,
           'name': name,
           'address': _addressController.text,
           'contact': _contactController.text,
@@ -403,9 +406,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Timer(Duration(seconds: 2), () {
           print("checking onBoarding Status");
           Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => MyOrdersScreen()),
-            );
+            context,
+            MaterialPageRoute(builder: (context) => MyOrdersScreen()),
+          );
         });
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(

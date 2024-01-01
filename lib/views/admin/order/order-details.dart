@@ -1,15 +1,16 @@
 import 'package:babyshophub/views/Orders/order-status.dart';
 import 'package:babyshophub/views/Product/product-details.dart';
+import 'package:babyshophub/views/common/pop-up.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:babyshophub/consts/consts.dart';
 
 enum OrderStatus {
-  Pending,
-  Submitted,
-  Processing,
-  Shipped,
-  Delivered,
+  pending,
+  submitted,
+  processing,
+  shipped,
+  delivered,
 }
 
 class OrderDetailsScreen extends StatefulWidget {
@@ -29,11 +30,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       await FirebaseFirestore.instance
           .collection('orders')
           .doc(orderId)
-          .update({'status': newStatus});
+          .update({'status': newStatus.toString().split('.').last});
+
+      setState(() {});
 
       print('Order status updated successfully.');
+      CustomPopup(message: "Order status updated successfully.", isSuccess: true);
     } catch (error) {
       print('Error updating order status: $error');
+      CustomPopup(message: "Error updating order status.", isSuccess: false);
       // Handle error as needed
     }
   }
@@ -61,49 +66,64 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 } else {
                   final orderData =
                       snapshot.data!.data() as Map<String, dynamic>;
-                  String selectedOrderStatus = orderData['status'];
+                  bool temp = orderStatuses.last.toString().toLowerCase().split('.').last ==
+                      orderData['status'].toString().toLowerCase();
+                  String selectedOrderStatus =
+                      orderData['status'].toString().toLowerCase();
+                  //     print(orderStatuses.last.toString().toLowerCase());
+                  //     print(orderData['status'].toString().toLowerCase());
+                  // print("hello $temp");
                   // Find the index of the selected status
-                  int selectedIndex = orderStatuses.indexOf(OrderStatus.values
-                      .firstWhere((status) =>
-                          status.toString() == selectedOrderStatus));
+                  // print(selectedOrderStatus);
+                  // print(OrderStatus.values);
+                  late List<OrderStatus> aheadStatuses;
+                  if (!temp) {
+                    int selectedIndex = orderStatuses.indexOf(OrderStatus.values
+                        .firstWhere((a) =>
+                            a.toString().split('.')[1] == selectedOrderStatus));
 
-                  // Create a sublist of statuses ahead of the selected status
-                  List<OrderStatus> aheadStatuses =
-                      orderStatuses.sublist(selectedIndex + 1);
+                    // Create a sublist of statuses ahead of the selected status
+                    aheadStatuses = orderStatuses.sublist(selectedIndex + 1);
+                    selectedOrderStatus =
+                        OrderStatus.values[selectedIndex + 1].toString();
+                  }
+                  print("$selectedOrderStatus last");
                   // Extract and display order details as needed
                   // Inside the FutureBuilder's builder function
                   return ListView(
                     children: [
                       Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            DropdownButton<String>(
-                              value: selectedOrderStatus,
-                              items: aheadStatuses.map((status) {
-                                return DropdownMenuItem<String>(
-                                  value: status.toString(),
-                                  child:
-                                      Text(status.toString().split('.').last),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedOrderStatus = newValue!;
-                                });
-                              },
-                            ),
-                            SizedBox(height: 20),
-                            ElevatedButton(
-                              onPressed: () {
-                                // Replace 'your_order_id' with the actual order ID
-                                updateOrderStatus(
-                                    'widget.orderId', selectedOrderStatus);
-                              },
-                              child: Text('Update Order Status'),
-                            ),
-                          ],
-                        ),
+                        child: temp
+                            ? Text("Status Changed Finished")
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  DropdownButton<String>(
+                                    value: selectedOrderStatus,
+                                    items: aheadStatuses.map((status) {
+                                      return DropdownMenuItem<String>(
+                                        value: status.toString(),
+                                        child: Text(
+                                            status.toString().split('.').last),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        selectedOrderStatus = newValue!;
+                                      });
+                                    },
+                                  ),
+                                  SizedBox(height: 20),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Replace 'your_order_id' with the actual order ID
+                                      updateOrderStatus('${widget.orderId}',
+                                          selectedOrderStatus);
+                                    },
+                                    child: Text('Update Order Status'),
+                                  ),
+                                ],
+                              ),
                       ),
                       ListTile(
                         title: Text('Order ID: ${widget.orderId}'),
@@ -121,13 +141,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
                           return GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ProductDetails(
-                                      productId: orderItem['productId']),
-                                ),
-                              );
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) => ProductDetails(
+                              //         productId: orderItem['productId']),
+                              //   ),
+                              // );
                             },
                             child: Card(
                               child: ListTile(

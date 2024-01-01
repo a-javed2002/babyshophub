@@ -77,142 +77,144 @@ class _MyDashboardState extends State<MyDashboard> {
     return AdminCustomScaffold(
       context: context,
       appBarTitle: 'Dashboarde',
-      body: Column(
-        children: [
-          Container(
-            child: Center(
-              child: Text('Welcome to the Dashboard'),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              child: Center(
+                child: Text('Welcome to the Dashboard'),
+              ),
             ),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    print("Container tapped!");
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return Dialog(
-                          insetPadding: EdgeInsets.zero,
-                          child: Container(
-                            // width: context.screenWidth,
-                            // height: context.screenHeight,
-                            color: mainLightColor,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.close),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    print("Dialog closed");
-                                  },
-                                ),
-                                Expanded(
-                                  child: MyDoughnut(
-                                    data: myData1,
-                                    mainTitle:
-                                        "Project's And There Gross Amount",
-                                    legendTitle: "Project",
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      print("Container tapped!");
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            insetPadding: EdgeInsets.zero,
+                            child: Container(
+                              // width: context.screenWidth,
+                              // height: context.screenHeight,
+                              color: mainLightColor,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.close),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      print("Dialog closed");
+                                    },
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  child: Stack(
-                    children: [
-                      Container(
-                        // width: context.screenWidth,
-                        height: 300,
-                        child: MyDoughnut(
-                          data: myData1,
-                          mainTitle: "Projects And There Gross Amount",
-                          legendTitle: "Projects",
-                        ),
-                      ),
-                      Positioned(
-                        top: 8.0,
-                        right: 8.0,
-                        child: Icon(Icons.fit_screen, color: mainColor),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    print("Container tapped!");
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return Dialog(
-                          insetPadding: EdgeInsets.zero,
-                          child: Container(
-                            // width: context.screenWidth,
-                            // height: context.screenHeight,
-                            color: mainLightColor,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.close),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    print("Dialog closed");
-                                  },
-                                ),
-                                Expanded(
-                                  child: MyDoughnut(
-                                    data: myData2,
-                                    mainTitle: "Top 10 Cities/Billed Quantity",
-                                    legendTitle: "City",
+                                  Expanded(
+                                    child: MyDoughnut(
+                                      data: myData1,
+                                      mainTitle:
+                                          "Project's And There Gross Amount",
+                                      legendTitle: "Project",
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+                          );
+                        },
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        Container(
+                          // width: context.screenWidth,
+                          height: 300,
+                          child: MyDoughnut(
+                            data: myData1,
+                            mainTitle: "Projects And There Gross Amount",
+                            legendTitle: "Projects",
                           ),
-                        );
-                      },
-                    );
-                  },
-                  child: Stack(
-                    children: [
-                      Container(
-                        // width: context.screenWidth,
-                        height: 300,
-                        child: MyDoughnut(
-                          data: myData2,
-                          mainTitle: "Top 10 Cities/Billed Quantity",
-                          legendTitle: "City",
                         ),
-                      ),
-                      Positioned(
-                        top: 8.0,
-                        right: 8.0,
-                        child: Icon(Icons.fit_screen, color: mainColor),
-                      ),
-                    ],
+                        Positioned(
+                          top: 8.0,
+                          right: 8.0,
+                          child: Icon(Icons.fit_screen, color: mainColor),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  GestureDetector(
+                    onTap: () {
+                      print("Container tapped!");
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            insetPadding: EdgeInsets.zero,
+                            child: Container(
+                              // width: context.screenWidth,
+                              // height: context.screenHeight,
+                              color: mainLightColor,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.close),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      print("Dialog closed");
+                                    },
+                                  ),
+                                  Expanded(
+                                    child: MyDoughnut(
+                                      data: myData2,
+                                      mainTitle: "Top 10 Cities/Billed Quantity",
+                                      legendTitle: "City",
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        Container(
+                          // width: context.screenWidth,
+                          height: 300,
+                          child: MyDoughnut(
+                            data: myData2,
+                            mainTitle: "Top 10 Cities/Billed Quantity",
+                            legendTitle: "City",
+                          ),
+                        ),
+                        Positioned(
+                          top: 8.0,
+                          right: 8.0,
+                          child: Icon(Icons.fit_screen, color: mainColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Divider(),
-          MyHorizontalBarChart(),
-          const Divider(),
-          // MyVerticalBarChart(chartData: chartData),
-          // const Divider(),
-          SalesTable(
-            columnNames: columnNames,
-            values: values,
-          ),
-        ],
+            const Divider(),
+            MyHorizontalBarChart(),
+            const Divider(),
+            // MyVerticalBarChart(chartData: chartData),
+            // const Divider(),
+            SalesTable(
+              columnNames: columnNames,
+              values: values,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:babyshophub/consts/colors.dart';
+import 'package:babyshophub/views/Profile/settings.dart';
 import 'package:babyshophub/views/authentication/login.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,7 +8,8 @@ import 'package:babyshophub/views/OnBoarding/widgets.dart';
 import 'package:babyshophub/views/home/home.dart';
 
 class OnBoardingScreen extends StatefulWidget {
-  const OnBoardingScreen({Key? key}) : super(key: key);
+  final settings;
+  const OnBoardingScreen({Key? key, this.settings = false}) : super(key: key);
 
   @override
   State<OnBoardingScreen> createState() => _OnBoardingScreenState();
@@ -70,21 +72,30 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                     ? ElevatedButton(
                         onPressed: () {
                           _setOnboardingStatus(status: true);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LoginPage(),
-                            ),
-                          );
+                          if (widget.settings) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SettingsScreen(),
+                              ),
+                            );
+                          } else {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LoginPage(),
+                              ),
+                            );
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             "Skip",
                             style: TextStyle(
-                              fontWeight: FontWeight.bold, // Make the text bold
-                              color: mainColor
-                            ),
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                                color: mainColor),
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -110,9 +121,9 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                           child: Text(
                             "Back",
                             style: TextStyle(
-                              fontWeight: FontWeight.bold, // Make the text bold
-                              color: mainColor
-                            ),
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                                color: mainColor),
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -130,21 +141,30 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                     ? ElevatedButton(
                         onPressed: () {
                           _setOnboardingStatus(status: true);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LoginPage(),
-                            ),
-                          );
+                          if (widget.settings) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SettingsScreen(),
+                              ),
+                            );
+                          } else {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LoginPage(),
+                              ),
+                            );
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             "Done",
                             style: TextStyle(
-                              fontWeight: FontWeight.bold, // Make the text bold
-                              color: whiteColor
-                            ),
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                                color: whiteColor),
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -172,9 +192,9 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                           child: Text(
                             "Next",
                             style: TextStyle(
-                              fontWeight: FontWeight.bold, // Make the text bold
-                              color: whiteColor
-                            ),
+                                fontWeight:
+                                    FontWeight.bold, // Make the text bold
+                                color: whiteColor),
                           ),
                         ),
                         style: ElevatedButton.styleFrom(

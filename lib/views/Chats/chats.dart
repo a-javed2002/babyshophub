@@ -18,54 +18,49 @@ class ChatMessage {
 }
 
 class ChatListScreen extends StatefulWidget {
-  // ChatListScreen({required this.currentUserUid});
-
   @override
   _ChatListScreenState createState() => _ChatListScreenState();
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  late Future<List<ChatMessage>> chatMessages;
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    late String currentUserUid ;
+  late String currentUserUid;
+  late Stream<List<ChatMessage>> chatMessages;
+
   @override
   void initState() {
     super.initState();
-    final User? user = _auth.currentUser;
+    final User? user = FirebaseAuth.instance.currentUser;
     currentUserUid = user!.uid;
-    chatMessages = getChatMessages();
+    chatMessages = getChatMessagesStream();
   }
 
-  Future<List<ChatMessage>> getChatMessages() async {
-
-    QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore
-        .instance
+  Stream<List<ChatMessage>> getChatMessagesStream() {
+    print(currentUserUid);
+    return FirebaseFirestore.instance
         .collection('chats')
         .where('participants', arrayContains: currentUserUid)
         .orderBy('timestamp', descending: true)
-        .get();
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<ChatMessage> messages = [];
 
-    List<ChatMessage> messages = [];
+          for (QueryDocumentSnapshot<Map<String, dynamic>> doc in snapshot.docs) {
+            DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore
+                .instance
+                .collection('users')
+                .doc(doc['sender'])
+                .get();
 
-    for (QueryDocumentSnapshot<Map<String, dynamic>> doc
-        in querySnapshot.docs) {
-      // Fetch user details using sender's UID from the 'users' collection
-      DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore
-          .instance
-          .collection('users')
-          .doc(doc['sender'])
-          .get();
+            messages.add(ChatMessage(
+              sender: doc['sender'],
+              message: doc['message'],
+              timestamp: doc['timestamp'].toDate(),
+              userImage: userDoc['userImage'],
+            ));
+          }
 
-      messages.add(ChatMessage(
-        sender: doc['sender'],
-        message: doc['message'],
-        timestamp: doc['timestamp'].toDate(),
-        userImage: userDoc[
-            'userImage'], // Assuming there's a 'userImage' field in the 'users' collection
-      ));
-    }
-
-    return messages;
+          return messages;
+        });
   }
 
   @override
@@ -74,13 +69,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
       appBar: AppBar(
         title: Text('Chat List'),
       ),
-      body: FutureBuilder<List<ChatMessage>>(
-        future: chatMessages,
+      body: StreamBuilder<List<ChatMessage>>(
+        stream: chatMessages,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            print(snapshot.error);
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(child: Text('No chat messages available.'));
@@ -93,7 +87,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   onTap: () {
                     ChatScreen(
                       currentUserUid: currentUserUid,
-                      recipientUid: 'recipient_user_uid',
+                      recipientUid: messages[index].sender,
                     );
                   },
                   child: ListTile(

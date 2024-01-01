@@ -1,8 +1,10 @@
 import 'package:babyshophub/consts/colors.dart';
 import 'package:babyshophub/controllers/auth_controller.dart';
+import 'package:babyshophub/views/Chats/chats-details.dart';
 import 'package:babyshophub/views/admin/category/add-category.dart';
 import 'package:babyshophub/views/admin/category/show-category.dart';
 import 'package:babyshophub/views/admin/order/orders.dart';
+import 'package:babyshophub/views/Chats/chats.dart';
 import 'package:babyshophub/views/admin/product/add-product.dart';
 import 'package:babyshophub/views/admin/product/show-product.dart';
 import 'package:babyshophub/views/authentication/Login.dart';
@@ -179,6 +181,36 @@ class MyDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => OrdersScreen()),
+              );
+            },
+            leading: const Icon(Icons.home),
+            horizontalTitleGap: 0,
+          ),
+          ListTile(
+            title: const Text(
+              "Chats",
+              style: TextStyle(fontSize: 20, color: Colors.black),
+            ),
+            onTap: () {
+              print("Clicked On Show Product");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ChatListScreen()),
+              );
+            },
+            leading: const Icon(Icons.home),
+            horizontalTitleGap: 0,
+          ),
+          ListTile(
+            title: const Text(
+              "ChatsR",
+              style: TextStyle(fontSize: 20, color: Colors.black),
+            ),
+            onTap: () {
+              print("Clicked On Show Product");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ChatScreen(currentUserUid: "4dwinBS5lVRMsNyeMLIUASIHFYs1",recipientUid: "W61jBbxY3KY3JxL4wMdMeMIH9qr1",)),
               );
             },
             leading: const Icon(Icons.home),
