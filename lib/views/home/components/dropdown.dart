@@ -3,7 +3,7 @@ import 'package:babyshophub/consts/colors.dart';
 
 class SmoothDropdown extends StatefulWidget {
   final String title;
-  final List<String> items;
+  final List<Map<String, dynamic>> items;
   final ValueChanged<String> onItemSelected;
   String selectedValue;
 
@@ -24,7 +24,7 @@ class _SmoothDropdownState extends State<SmoothDropdown> {
   void initState() {
     super.initState();
     // Set the default selected value to the first item in the list
-    widget.selectedValue == "" ? widget.selectedValue = widget.items.first : "";
+    widget.selectedValue == "" ? widget.selectedValue = widget.items.first["id"] : "";
   }
 
   @override
@@ -68,14 +68,14 @@ class _SmoothDropdownState extends State<SmoothDropdown> {
                   },
                   items: widget.items.map((item) {
                     return DropdownMenuItem<String>(
-                      value: item,
+                      value: item["id"],
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
-                              item,
-                              style: item == widget.selectedValue
+                              item["name"],
+                              style: item["id"] == widget.selectedValue
                                   ? TextStyle(
                                       color: whiteColor,
                                       backgroundColor: mainColor)

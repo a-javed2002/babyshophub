@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:babyshophub/consts/colors.dart';
 
 class CustomRadioBoxBtn extends StatefulWidget {
   final List<String> options;
   final bool selectFirstOption;
+  final void Function(String selectedValue) onPressed;
 
-  CustomRadioBoxBtn({required this.options, this.selectFirstOption = false});
+  CustomRadioBoxBtn({
+    required this.options,
+    this.selectFirstOption = false,
+    required this.onPressed,
+  });
 
   @override
   _CustomRadioBoxBtnState createState() => _CustomRadioBoxBtnState();
@@ -29,17 +33,22 @@ class _CustomRadioBoxBtnState extends State<CustomRadioBoxBtn> {
             onTap: () {
               setState(() {
                 selectedOption = option;
-                print('Selected option: $selectedOption');
+                widget.onPressed(selectedOption); // Call the callback with the selected value
               });
             },
             child: Container(
-              padding: EdgeInsets.all(16.0),
               margin: EdgeInsets.symmetric(vertical: 8.0),
-              color: selectedOption == option ? mainColor : Colors.transparent,
-              child: Text(
-                option,
-                style: TextStyle(
-                  color: selectedOption == option ? Colors.white : Colors.black,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16.0),
+                child: Container(
+                  padding: EdgeInsets.all(16.0),
+                  color: selectedOption == option ? Colors.blue : Colors.transparent,
+                  child: Text(
+                    option,
+                    style: TextStyle(
+                      color: selectedOption == option ? Colors.white : Colors.black,
+                    ),
+                  ),
                 ),
               ),
             ),

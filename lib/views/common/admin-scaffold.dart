@@ -7,6 +7,7 @@ import 'package:babyshophub/views/admin/order/orders.dart';
 import 'package:babyshophub/views/Chats/chats.dart';
 import 'package:babyshophub/views/admin/product/add-product.dart';
 import 'package:babyshophub/views/admin/product/show-product.dart';
+import 'package:babyshophub/views/admin/users.dart';
 import 'package:babyshophub/views/authentication/Login.dart';
 import 'package:babyshophub/views/common/appBar.dart';
 import 'package:babyshophub/views/common/drawer.dart';
@@ -196,6 +197,21 @@ class MyDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ChatListScreen()),
+              );
+            },
+            leading: const Icon(Icons.home),
+            horizontalTitleGap: 0,
+          ),
+          ListTile(
+            title: const Text(
+              "users",
+              style: TextStyle(fontSize: 20, color: Colors.black),
+            ),
+            onTap: () {
+              print("Clicked On Show Product");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyUsers()),
               );
             },
             leading: const Icon(Icons.home),

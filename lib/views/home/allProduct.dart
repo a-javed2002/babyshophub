@@ -19,11 +19,39 @@ class _AllProductScreenState extends State<AllProductScreen> {
   CartController _controllerCart = CartController();
   WishlistController _controllerWishlist = WishlistController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  List<Map<String, dynamic>> _categories = [
+    {"all": "all"}
+  ];
+  bool priceAscending = true;
+  bool nameAscending = true;
+  TextEditingController lowPriceController = TextEditingController(text: '0');
+  TextEditingController highPriceController =
+      TextEditingController(text: '1000000');
+  String selectedcategory = 'all';
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection(categoriesCollection)
+          .get();
+
+      setState(() {
+        _categories = querySnapshot.docs.map((doc) {
+          return {"id": doc.id, "name": doc['name']};
+        }).toList();
+      });
+      // print("Categories are:");
+      // print(_categories);
+    } catch (e) {
+      print('Error fetching categories: $e');
+    }
   }
 
   void showToast(String message) {
@@ -139,8 +167,8 @@ class _AllProductScreenState extends State<AllProductScreen> {
                                 margin: EdgeInsets.all(8.0),
                                 child: ListTile(
                                   leading: CircleAvatar(
-                                    backgroundImage:
-                                        NetworkImage(productData['imageUrls'][0]),
+                                    backgroundImage: NetworkImage(
+                                        productData['imageUrls'][0]),
                                   ),
                                   title: Text(productData['name']),
                                   subtitle: Column(
@@ -248,92 +276,80 @@ class _AllProductScreenState extends State<AllProductScreen> {
               ),
               SmoothDropdown(
                 selectedValue: "",
-                title: 'Plant',
-                items: ['ALL', 'Plant 1', 'Plant 2', 'Plant 3', 'Plant 4'],
-                onItemSelected: (selectedValue) {
-                  // Handle the selected value in the parent widget
-                  print('Selected value in parent widget: $selectedValue');
-                },
-              ),
-              SmoothDropdown(
-                selectedValue: "",
-                title: 'Sold To Party',
-                items: ['Mutiple', 'Single', 'etc'],
-                onItemSelected: (selectedValue) {
-                  // Handle the selected value in the parent widget
-                  print('Selected value in parent widget: $selectedValue');
-                },
-              ),
-              SmoothDropdown(
-                selectedValue: "",
-                title: 'Group',
-                items: ['ALL', 'Group 1', 'Group 2', 'Group 3', 'Group 4'],
-                onItemSelected: (selectedValue) {
-                  // Handle the selected value in the parent widget
-                  print('Selected value in parent widget: $selectedValue');
-                },
-              ),
-              SmoothDropdown(
-                selectedValue: "",
-                title: 'Sub Group',
-                items: [
-                  'ALL',
-                  'Sub Group 1',
-                  'Sub Group 2',
-                  'Sub Group 3',
-                  'Sub Group 4'
-                ],
-                onItemSelected: (selectedValue) {
-                  // Handle the selected value in the parent widget
-                  print('Selected value in parent widget: $selectedValue');
-                },
-              ),
-              SmoothDropdown(
-                selectedValue: "",
                 title: 'Category',
-                items: [
-                  'ALL',
-                  'category 1',
-                  'category 2',
-                  'category 3',
-                  'category 4'
-                ],
+                items: _categories,
                 onItemSelected: (selectedValue) {
                   // Handle the selected value in the parent widget
                   print('Selected value in parent widget: $selectedValue');
+                  selectedcategory = selectedValue;
+                  _onSearchChanged;
                 },
               ),
-              SizedBox(
-                height: 10,
-              ),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.start,
-                spacing: 2.0,
-                runSpacing: 2.0,
+              // SizedBox(
+              //   height: 10,
+              // ),
+              // Wrap(
+              //   crossAxisAlignment: WrapCrossAlignment.start,
+              //   spacing: 2.0,
+              //   runSpacing: 2.0,
+              //   children: [
+              //     Container(
+              //       width: double.infinity,
+              //       color: mainColor,
+              //       padding: const EdgeInsets.symmetric(vertical: 8.0),
+              //       child: Center(
+              //         child: Text(
+              //           'Material Type',
+              //           style: TextStyle(
+              //             fontSize: 18,
+              //             fontWeight: FontWeight.bold,
+              //             color: Colors.white,
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //     CustomCheckBoxBtn(title: 'LAMINATION'),
+              //     CustomCheckBoxBtn(title: 'PLYWOOD'),
+              //     CustomCheckBoxBtn(title: 'CHEMICAL'),
+              //     CustomCheckBoxBtn(title: 'MTW'),
+              //     CustomCheckBoxBtn(title: 'VENEERED PANEL'),
+              //     CustomCheckBoxBtn(title: 'DOOR SKIN'),
+              //     CustomCheckBoxBtn(title: 'EDGE BANDING'),
+              //     CustomCheckBoxBtn(title: 'SOFTWOOD LUMBER'),
+              //   ],
+              // ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    width: double.infinity,
-                    color: mainColor,
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Center(
-                      child: Text(
-                        'Material Type',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                  DrawerHeader(
+                    child: Text('Price Search Drawer'),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
                     ),
                   ),
-                  CustomCheckBoxBtn(title: 'LAMINATION'),
-                  CustomCheckBoxBtn(title: 'PLYWOOD'),
-                  CustomCheckBoxBtn(title: 'CHEMICAL'),
-                  CustomCheckBoxBtn(title: 'MTW'),
-                  CustomCheckBoxBtn(title: 'VENEERED PANEL'),
-                  CustomCheckBoxBtn(title: 'DOOR SKIN'),
-                  CustomCheckBoxBtn(title: 'EDGE BANDING'),
-                  CustomCheckBoxBtn(title: 'SOFTWOOD LUMBER'),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: lowPriceController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'Low Price'),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: highPriceController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'High Price'),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      _onSearchChanged;
+                      Navigator.pop(context); // Close the drawer
+                    },
+                    child: Center(child: Text('Search')),
+                  ),
                 ],
               ),
               SizedBox(
@@ -349,7 +365,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Center(
                       child: Text(
-                        'Division',
+                        'Price',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -360,8 +376,58 @@ class _AllProductScreenState extends State<AllProductScreen> {
                     ),
                   ),
                   CustomRadioBoxBtn(
-                    options: ['Select All', 'Wood'],
+                    options: ['Low to High', 'High To Low'],
                     selectFirstOption: true,
+                    onPressed: (selectedValue) {
+                      print('Selected option: $selectedValue');
+                      // You can perform any action with the selected value here
+                      if (selectedValue.toString().toLowerCase() ==
+                          'low to high') {
+                        priceAscending = true;
+                      } else {
+                        priceAscending = false;
+                      }
+                      _onSearchChanged;
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double
+                        .infinity, // Set the width to fill the available space
+                    color: mainColor,
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Center(
+                      child: Text(
+                        'Alphabetic Order',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors
+                              .white, // Set text color to contrast with background
+                        ),
+                      ),
+                    ),
+                  ),
+                  CustomRadioBoxBtn(
+                    options: ['A-Z', 'Z-A'],
+                    selectFirstOption: true,
+                    onPressed: (selectedValue) {
+                      print('Selected option: $selectedValue');
+                      if (selectedValue.toString().toLowerCase() == 'a-z') {
+                        nameAscending = true;
+                      } else {
+                        nameAscending = false;
+                      }
+                      _onSearchChanged;
+                      // You can perform any action with the selected value here
+                    },
                   ),
                 ],
               ),
@@ -373,17 +439,51 @@ class _AllProductScreenState extends State<AllProductScreen> {
   }
 
   Stream<QuerySnapshot> _buildQueryStream() {
-    String searchTerm = _searchController.text.toLowerCase();
-    CollectionReference productsRef =
-        FirebaseFirestore.instance.collection('products');
+    try {
+      String searchTerm = _searchController.text.toLowerCase();
+      CollectionReference productsRef =
+          FirebaseFirestore.instance.collection('products');
 
-    if (searchTerm.isEmpty) {
-      return productsRef.snapshots();
-    } else {
-      return productsRef
-          .where('name', isGreaterThanOrEqualTo: searchTerm)
-          .where('name', isLessThan: searchTerm + 'z')
-          .snapshots();
+      Query query = productsRef;
+
+      // Apply search filter if the searchTerm is not empty
+      if (searchTerm.isNotEmpty) {
+        query = query
+            .where('name', isGreaterThanOrEqualTo: searchTerm)
+            .where('name', isLessThan: searchTerm + 'z');
+      }
+
+      // Apply category filter
+      if (selectedcategory != 'all') {
+        query = query.where('categoryId', isEqualTo: selectedcategory);
+      }
+
+      // Apply price range filter
+      double lowPrice = double.parse(lowPriceController.text);
+      double highPrice = double.parse(highPriceController.text);
+
+      query = query.where('price',
+          isGreaterThanOrEqualTo: lowPrice, isLessThanOrEqualTo: highPrice);
+
+      // Apply sorting based on flags
+      if (priceAscending) {
+        query = query.orderBy('price');
+      } else {
+        query = query.orderBy('price', descending: true);
+      }
+
+      if (nameAscending) {
+        query = query.orderBy('name');
+      } else {
+        query = query.orderBy('name', descending: true);
+      }
+
+      return query.snapshots();
+    } catch (e) {
+      // Log the error to the console
+      print('Error in query: $e');
+      // Return an empty stream in case of an error
+      return Stream.empty();
     }
   }
 

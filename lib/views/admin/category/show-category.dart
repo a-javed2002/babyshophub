@@ -72,11 +72,7 @@ class ShowCategory extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => EditCategory(categoryId: category.id,)),
-                        );
+                        _editCategory(context, category);
                       },
                     ),
                     IconButton(
@@ -176,6 +172,43 @@ class ShowCategory extends StatelessWidget {
       print('Image deleted successfully: $imageUrl');
     } catch (e) {
       print('Error deleting image: $e');
+    }
+  }
+
+  
+  Future<void> _editCategory(BuildContext context, QueryDocumentSnapshot category) async {
+    // Retrieve category data
+    String categoryName = category['name'];
+    String categoryDescription = category['description'];
+    List<String> categoryImageUrl = category['imageUrl'];
+
+    // Show the edit category dialog
+    bool result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditCategoryDialog(
+          categoryName: categoryName,
+          categoryDescription: categoryDescription,
+          categoryImageUrl: categoryImageUrl,
+        );
+      },
+    );
+
+    // Update Firestore if the user pressed "Save" in the dialog
+    if (result == true) {
+      try {
+        await FirebaseFirestore.instance
+            .collection(categoriesCollection)
+            .doc(category.id)
+            .update({
+          'name': categoryName,
+          'description': categoryDescription,
+          'imageUrl': categoryImageUrl,
+        });
+        print('Category updated successfully');
+      } catch (e) {
+        print('Error updating category: $e');
+      }
     }
   }
 }
