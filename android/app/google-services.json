@@ -12,7 +12,20 @@
           "package_name": "com.example.babyshophub"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "352086438099-cjaq9a2a5q4rsbet2itmmrm2ogga26pt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.babyshophub",
+            "certificate_hash": "c3e5eb4848e5541f6b117d7dabcaf2475771de2e"
+          }
+        },
+        {
+          "client_id": "352086438099-mmrkrvkopa1jtmcv2hstsaoeefab4n2v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDIJTzGJEDHB74iCWIcDGdFb_bfu8sf4xI"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "352086438099-mmrkrvkopa1jtmcv2hstsaoeefab4n2v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

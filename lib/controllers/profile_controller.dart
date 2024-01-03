@@ -25,6 +25,7 @@ class profileController{
       if(img==null) return;
       profileImgPath=img.path;
     } on PlatformException catch(e){
+      print("Image change Error $e");
       // VxToast.show(context,msg:e.toString());
     }
   }

@@ -1,4 +1,3 @@
-import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/views/common/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,71 +10,18 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
   final GoogleSignIn googleSignIn = GoogleSignIn();
 
-  var isLoading = false;
-
-  Future<UserCredential?> loginMethod({context}) async {
-    UserCredential? userCredential;
-
+  Future<UserCredential?> handleSignIn() async {
     try {
-      print(emailController.text);
-      print(passwordController.text);
-      userCredential = await auth.signInWithEmailAndPassword(
-          email: emailController.text, password: passwordController.text);
-    } on FirebaseAuthException catch (e) {
-      print("Error during sign in");
-      print(e);
-      String message = "An error occurred. Please try again later";
-      if (e.code == 'user-not-found') {
-        message = "No user found with that email. Please sign up first";
-      } else if (e.code == 'wrong-password') {
-        message = "Wrong password provided for that user";
-      } else {
-        message = e.message ?? message;
-      }
-      // VxToast.show(context, msg: message, showTime: 5000);
-    }
-    return userCredential;
-  }
-
-  Future<UserCredential?> signUpMethod({email, passowrd, context}) async {
-    UserCredential? userCredential;
-    try {
-      userCredential = await auth.createUserWithEmailAndPassword(
-          email: email, password: password);
-    } on FirebaseAuthException catch (e) {
-      print("error signup");
-      // VxToast.show(context, msg: e.toString(), showTime: 5000);
-    }
-    return userCredential;
-  }
-
-  //storing data method
-  storeUserData({name, password, email}) async {
-    DocumentReference store =
-        firestore.collection(userCollection).doc(currentUser!.uid);
-    store.set({
-      'name': name,
-      'password': password,
-      'email': email,
-      'imageUrl': '',
-      'id': currentUser!.uid,
-      'cart_count': "00",
-      'wishlist_count': "00",
-      'order_count': "00"
-    });
-  }
-
-   Future<User?> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
-
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
       if (googleSignInAccount == null) {
-        return null; // User canceled the sign-in process
+        // User canceled the sign-in process
+        return null;
       }
 
       final GoogleSignInAuthentication googleSignInAuthentication =
@@ -86,14 +32,32 @@ class AuthController {
         idToken: googleSignInAuthentication.idToken,
       );
 
-      UserCredential authResult = await _auth.signInWithCredential(credential);
-      User? user = authResult.user;
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
 
-      return user;
-    } catch (e) {
-      print("Google Sign In Error: $e");
+      // Store user information in Firestore
+      await _storeUserData(userCredential.user!);
+
+      return userCredential;
+    } catch (error) {
+      print("Error signing in with Google: $error");
       return null;
     }
+  }
+
+  Future<void> _storeUserData(User user) async {
+    // Store user information in Firestore
+    await _firestore.collection('users').doc(user.uid).set({
+      'image': user.photoURL,
+      'username': user.displayName,
+      'cnic': '',
+      'email': user.email,
+      'role': 'user',
+      'imageUrl': user.photoURL.toString().isNotEmpty ? user.photoURL : '',
+      'wishlist': [],
+      'orders': [],
+      'timestamp': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<User?> signInWithFacebook() async {
@@ -150,8 +114,8 @@ class AuthController {
       await _clearUserDataFromSharedPreferences();
 
       // Sign out from Firebase Authentication
+      await googleSignIn.signOut();
       await _auth.signOut();
-      // await googleSignIn.signOut();
       // await FacebookAuth.instance.logOut();
       // No specific sign-out method for Twitter
     } catch (e) {

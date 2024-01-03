@@ -1,5 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:babyshophub/consts/colors.dart';
+import 'package:babyshophub/controllers/auth_controller.dart';
 import 'package:babyshophub/views/OnBoarding/onBoarding.dart';
 import 'package:babyshophub/views/Profile/reset-password.dart';
 import 'package:babyshophub/views/admin/dashboard.dart';
@@ -27,6 +28,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController _passwordController =
       TextEditingController(text: "123456");
   bool _isPasswordVisible = false;
+  late AuthController _authController;
 
   void storeUserDataInSharedPreferences(Map<String, dynamic> userData) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -136,71 +138,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _authController = AuthController();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-        // appBar: AppBar(
-        //   title: Text('Login Page'),
-        // ),
-        // body: Padding(
-        //   padding: const EdgeInsets.all(16.0),
-        //   child: Column(
-        //     mainAxisAlignment: MainAxisAlignment.center,
-        //     children: [
-        //       TextField(
-        //         controller: _emailController,
-        //         decoration: InputDecoration(
-        //           labelText: 'Email',
-        //         ),
-        //       ),
-        //       SizedBox(height: 20),
-        //       TextField(
-        //         controller: _passwordController,
-        //         obscureText: true,
-        //         decoration: InputDecoration(
-        //           labelText: 'Password',
-        //         ),
-        //       ),
-        //       SizedBox(height: 20),
-        //       isLoading?CustomLoader():
-        //       ElevatedButton(
-        //         onPressed: () {
-        //           // Implement login functionality here
-        //           String msg = _validateFields();
-        //           if (msg != '') {
-        //             showDialog(
-        //               context: context,
-        //               builder: (BuildContext context) {
-        //                 return CustomPopup(
-        //                   message: msg,
-        //                   isSuccess: false,
-        //                 );
-        //               },
-        //             );
-        //           } else {
-        //             login(_emailController.text, _passwordController.text);
-        //           }
-        //         },
-        //         child: Text('Login'),
-        //       ),
-        //       SizedBox(height: 10),
-        // Row(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: [
-        //     Text("Don't have an account?"),
-        //     TextButton(
-        //       onPressed: () {
-        //         Navigator.push(
-        //           context,
-        //           MaterialPageRoute(builder: (context) => SignUpPage()),
-        //         );
-        //       },
-        //       child: Text('Sign Up'),
-        //     ),
-        //   ],
-        // ),
-        //     ],
-        //   ),
-        // ),
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
           child: Container(
@@ -428,6 +374,47 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         height: 10,
                       ),
+                      // FadeInUp(
+                      //     duration: Duration(milliseconds: 1900),
+                      //     child: isLoading
+                      //         ? CustomLoader()
+                      //         : GestureDetector(
+                      //             onTap: () async {
+                      //               UserCredential? userCredential =
+                      //                   await _authController.handleSignIn();
+                      //               if (userCredential != null) {
+                      //                 print(
+                      //                     "Signed in: ${userCredential.user?.displayName}");
+                      //                 // Navigate to the next screen or perform other actions
+                      //               } else {
+                      //                 print("Sign-in canceled or failed");
+                      //               }
+                      //             },
+                      //             child: Container(
+                      //               height: 50,
+                      //               decoration: BoxDecoration(
+                      //                 borderRadius: BorderRadius.circular(10),
+                      //                 gradient: LinearGradient(
+                      //                   colors: [
+                      //                     Color.fromRGBO(240, 251, 143, 1),
+                      //                     Color.fromRGBO(243, 142, 75, 0.6),
+                      //                   ],
+                      //                 ),
+                      //               ),
+                      //               child: Center(
+                      //                 child: Text(
+                      //                   "SignIn With Google",
+                      //                   style: TextStyle(
+                      //                     color: Colors.white,
+                      //                     fontWeight: FontWeight.bold,
+                      //                   ),
+                      //                 ),
+                      //               ),
+                      //             ),
+                      //           )),
+                      // SizedBox(
+                      //   height: 10,
+                      // ),
                       FadeInUp(
                           duration: Duration(milliseconds: 2000),
                           child: GestureDetector(

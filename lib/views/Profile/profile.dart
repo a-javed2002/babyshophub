@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/controllers/cart_controller.dart';
+import 'package:babyshophub/views/Chats/chats.dart';
 import 'package:babyshophub/views/Orders/orders.dart';
 import 'package:babyshophub/views/Product/cart.dart';
 import 'package:babyshophub/views/Product/wishlist.dart';
@@ -206,11 +207,11 @@ class _MyProfileState extends State<MyProfile> {
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MyOrdersScreen(),
-                        ),
-                      );
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatListScreen(),
+                          ),
+                        );
                     },
                     child: Icon(Icons.message,
                         color: textColor, size: screenWidth * 0.06),

@@ -1,144 +1,178 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/views/Product/Category-All.dart';
-import 'package:babyshophub/views/Product/cart.dart';
 import 'package:babyshophub/views/Product/category.dart';
 import 'package:babyshophub/views/Product/product-details.dart';
-import 'package:babyshophub/views/Product/wishlist.dart';
-import 'package:babyshophub/views/admin/order/orders.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-Widget LandingPage({required context}){
+Widget LandingPage({required context}) {
+  final myImageItems = [
+    Image.asset('images/image01.png'),
+    Image.asset('images/image02.png'),
+    Image.asset('images/image03.png'),
+    Image.asset('images/image04.png'),
+    Image.asset('images/image05.png'),
+  ];
+
+  int myImageCurrentIndex = 0;
   return SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  FadeInUp(
-                      duration: Duration(milliseconds: 1000),
-                      child: Container(
-                        height: 500,
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                                image:
-                                    AssetImage('assets/images/background.jpg'),
-                                fit: BoxFit.cover)),
-                        child: Container(
-                          decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                  begin: Alignment.bottomRight,
-                                  colors: [
-                                Colors.black.withOpacity(.8),
-                                Colors.black.withOpacity(.2),
-                              ])),
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 50.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                    FadeInUp(
-                                        duration: Duration(milliseconds: 1200),
-                                        child: IconButton(
-                                          icon: Icon(
-                                            Icons.favorite,
-                                            color: Colors.white,
-                                          ),
-                                          onPressed: () {},
-                                        )),
-                                    FadeInUp(
-                                        duration: Duration(milliseconds: 1300),
-                                        child: IconButton(
-                                          icon: Icon(
-                                            Icons.shopping_cart,
-                                            color: Colors.white,
-                                          ),
-                                          onPressed: () {},
-                                        )),
-                                  ],
+    child: Column(
+      children: <Widget>[
+        FadeInUp(
+            duration: Duration(milliseconds: 1000),
+            child: Container(
+              height: 500,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                      image: AssetImage('assets/images/background.jpg'),
+                      fit: BoxFit.cover)),
+              child: Container(
+                decoration: BoxDecoration(
+                    gradient:
+                        LinearGradient(begin: Alignment.bottomRight, colors: [
+                  Colors.black.withOpacity(.8),
+                  Colors.black.withOpacity(.2),
+                ])),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 50.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          FadeInUp(
+                              duration: Duration(milliseconds: 1200),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.favorite,
+                                  color: Colors.white,
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      FadeInUp(
-                                          duration:
-                                              Duration(milliseconds: 1500),
-                                          child: Text(
-                                            "Our New Products",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 30,
-                                                fontWeight: FontWeight.bold),
-                                          )),
-                                      SizedBox(
-                                        height: 15,
-                                      ),
-                                      FadeInUp(
-                                          duration:
-                                              Duration(milliseconds: 1700),
-                                          child: Row(
-                                            children: <Widget>[
-                                              Text(
-                                                "VIEW MORE",
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight:
-                                                        FontWeight.w600),
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              Icon(
-                                                Icons.arrow_forward_ios,
-                                                color: Colors.white,
-                                                size: 15,
-                                              )
-                                            ],
-                                          ))
-                                    ],
-                                  ),
+                                onPressed: () {},
+                              )),
+                          FadeInUp(
+                              duration: Duration(milliseconds: 1300),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.shopping_cart,
+                                  color: Colors.white,
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )),
-                  FadeInUp(
-                      duration: Duration(milliseconds: 1400),
-                      child: Container(
-                        padding: EdgeInsets.all(20),
+                                onPressed: () {},
+                              )),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Text(
-                                  "Categories",
+                            FadeInUp(
+                                duration: Duration(milliseconds: 1500),
+                                child: Text(
+                                  "Our New Products",
                                   style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 18,
+                                      color: Colors.white,
+                                      fontSize: 30,
                                       fontWeight: FontWeight.bold),
-                                ),
-                                Text("All")
-                              ],
-                            ),
+                                )),
                             SizedBox(
-                              height: 20,
+                              height: 15,
                             ),
-                            CategorySlider(),
-                            ProductSlider(),
+                            FadeInUp(
+                                duration: Duration(milliseconds: 1700),
+                                child: Row(
+                                  children: <Widget>[
+                                    Text(
+                                      "VIEW MORE",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      color: Colors.white,
+                                      size: 15,
+                                    )
+                                  ],
+                                ))
                           ],
                         ),
-                      ))
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )),
+        Column(
+          children: [
+            CarouselSlider(
+              options: CarouselOptions(
+                autoPlay: true,
+                height: 200,
+                autoPlayCurve: Curves.fastOutSlowIn,
+                autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                autoPlayInterval: const Duration(seconds: 2),
+                enlargeCenterPage: true,
+                aspectRatio: 2.0,
+                onPageChanged: (index, reason) {
+                  // setState(() {
+                  myImageCurrentIndex = index;
+                  // });
+                },
+              ),
+              items: myImageItems,
+            ),
+            AnimatedSmoothIndicator(
+              activeIndex: myImageCurrentIndex,
+              count: myImageItems.length,
+              effect: WormEffect(
+                dotHeight: 8,
+                dotWidth: 8,
+                spacing: 10,
+                dotColor: Colors.grey.shade200,
+                activeDotColor: Colors.grey.shade900,
+                paintStyle: PaintingStyle.fill,
+              ),
+            )
+          ],
+        ),
+        FadeInUp(
+            duration: Duration(milliseconds: 1400),
+            child: Container(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        "Categories",
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text("All")
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  CategorySlider(),
+                  ProductSlider(),
                 ],
               ),
-            );
+            ))
+      ],
+    ),
+  );
 }
 
 class CategorySlider extends StatelessWidget {
