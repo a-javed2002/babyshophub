@@ -374,47 +374,65 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         height: 10,
                       ),
-                      // FadeInUp(
-                      //     duration: Duration(milliseconds: 1900),
-                      //     child: isLoading
-                      //         ? CustomLoader()
-                      //         : GestureDetector(
-                      //             onTap: () async {
-                      //               UserCredential? userCredential =
-                      //                   await _authController.handleSignIn();
-                      //               if (userCredential != null) {
-                      //                 print(
-                      //                     "Signed in: ${userCredential.user?.displayName}");
-                      //                 // Navigate to the next screen or perform other actions
-                      //               } else {
-                      //                 print("Sign-in canceled or failed");
-                      //               }
-                      //             },
-                      //             child: Container(
-                      //               height: 50,
-                      //               decoration: BoxDecoration(
-                      //                 borderRadius: BorderRadius.circular(10),
-                      //                 gradient: LinearGradient(
-                      //                   colors: [
-                      //                     Color.fromRGBO(240, 251, 143, 1),
-                      //                     Color.fromRGBO(243, 142, 75, 0.6),
-                      //                   ],
-                      //                 ),
-                      //               ),
-                      //               child: Center(
-                      //                 child: Text(
-                      //                   "SignIn With Google",
-                      //                   style: TextStyle(
-                      //                     color: Colors.white,
-                      //                     fontWeight: FontWeight.bold,
-                      //                   ),
-                      //                 ),
-                      //               ),
-                      //             ),
-                      //           )),
-                      // SizedBox(
-                      //   height: 10,
-                      // ),
+                      FadeInUp(
+                          duration: Duration(milliseconds: 1900),
+                          child: isLoading
+                              ? CustomLoader()
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SocialButton(
+                                      image:
+                                          'assets/icons/google_logo.png', // Replace with your Google logo image path
+                                      onPressed: () async {
+                                    UserCredential? userCredential =
+                                        await _authController.handleGoogleSignIn();
+                                    if (userCredential != null) {
+                                      print(
+                                          "Signed in: ${userCredential.user?.displayName}");
+                                      // Navigate to the next screen or perform other actions
+                                    } else {
+                                      print("Sign-in canceled or failed");
+                                    }
+                                  },
+                                    ),
+                                    SizedBox(width: 16),
+                                    SocialButton(
+                                      image:
+                                          'assets/icons/facebook_logo.png', // Replace with your Facebook logo image path
+                                      onPressed: () async {
+                                    UserCredential? userCredential =
+                                        await _authController.handleGoogleSignIn();
+                                    if (userCredential != null) {
+                                      print(
+                                          "Signed in: ${userCredential.user?.displayName}");
+                                      // Navigate to the next screen or perform other actions
+                                    } else {
+                                      print("Sign-in canceled or failed");
+                                    }
+                                  },
+                                    ),
+                                    SizedBox(width: 16),
+                                    SocialButton(
+                                      image:
+                                          'assets/icons/github_logo.png', // Replace with your GitHub logo image path
+                                      onPressed: () async {
+                                    UserCredential? userCredential =
+                                        await _authController.handleGoogleSignIn();
+                                    if (userCredential != null) {
+                                      print(
+                                          "Signed in: ${userCredential.user?.displayName}");
+                                      // Navigate to the next screen or perform other actions
+                                    } else {
+                                      print("Sign-in canceled or failed");
+                                    }
+                                  },
+                                    ),
+                                  ],
+                                )),
+                      SizedBox(
+                        height: 10,
+                      ),
                       FadeInUp(
                           duration: Duration(milliseconds: 2000),
                           child: GestureDetector(
@@ -471,5 +489,34 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+}
+
+class SocialButton extends StatelessWidget {
+  final String image;
+  final VoidCallback onPressed;
+
+  SocialButton({required this.image, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.grey[200], // You can set your desired background color
+        ),
+        child: Center(
+          child: Image.asset(
+            image,
+            width: 30,
+            height: 30,
+          ),
+        ),
+      ),
+    );
   }
 }

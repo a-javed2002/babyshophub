@@ -2,7 +2,9 @@ import 'package:animate_do/animate_do.dart';
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/controllers/cart_controller.dart';
 import 'package:babyshophub/controllers/wishlist_controller.dart';
+import 'package:babyshophub/views/Product/cart.dart';
 import 'package:babyshophub/views/Product/product-details.dart';
+import 'package:babyshophub/views/Product/wishlist.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:babyshophub/views/common/user-scaffold.dart';
@@ -13,7 +15,7 @@ class CategoryPage extends StatefulWidget {
   final String? image;
   final String? id;
 
-  const CategoryPage({Key? key, this.title, this.image, this.id})
+  const CategoryPage({Key? key,required this.title,required this.image,required this.id})
       : super(key: key);
 
   @override
@@ -86,7 +88,13 @@ class _CategoryPageState extends State<CategoryPage> {
                                   child: IconButton(
                                     icon: Icon(Icons.favorite,
                                         color: Colors.white),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  WishlistScreen()));
+                                    },
                                   ),
                                 ),
                                 FadeInUp(
@@ -94,7 +102,13 @@ class _CategoryPageState extends State<CategoryPage> {
                                   child: IconButton(
                                     icon: Icon(Icons.shopping_cart,
                                         color: Colors.white),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  CartScreen()));
+                                    },
                                   ),
                                 ),
                               ],
