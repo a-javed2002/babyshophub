@@ -73,7 +73,7 @@ class CategoryGrid extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Add category-specific widgets here
-                    Text(category['name']),
+                    Text(category['name'],style: TextStyle(color: Colors.black),),
                   ],
                 ),
               ),

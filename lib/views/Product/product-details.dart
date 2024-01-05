@@ -222,8 +222,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                       productId: widget.productId,
                                       productName: productDetails['name'],
                                       productPrice: productDetails['price'],
-                                      productImage: productDetails['imageUrls']
-                                          [0],
+                                      productImage: productDetails['imageUrls'],
                                     );
                                   },
                                 );

@@ -7,7 +7,6 @@ import 'package:babyshophub/views/Orders/orders.dart';
 import 'package:babyshophub/views/Product/cart.dart';
 import 'package:babyshophub/views/Product/wishlist.dart';
 import 'package:babyshophub/views/Profile/settings.dart';
-import 'package:babyshophub/views/admin/order/orders.dart';
 import 'package:babyshophub/views/common/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -16,7 +15,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class MyProfile extends StatefulWidget {
   const MyProfile({super.key});
@@ -35,13 +33,13 @@ class _MyProfileState extends State<MyProfile> {
   String role = '';
   String cnic = '';
   String imageUrl = '';
-  bool temp = false;
   String timestamp = '';
   List orders = [];
   List wishlist = [];
   List address = [];
   List contact = [];
   List cart = [];
+  bool temp = false;
   FilePickerResult? result;
   late File _selectedImage;
 

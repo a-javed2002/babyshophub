@@ -10,7 +10,6 @@ import 'package:babyshophub/views/admin/product/show-product.dart';
 import 'package:babyshophub/views/admin/users.dart';
 import 'package:babyshophub/views/authentication/Login.dart';
 import 'package:babyshophub/views/common/appBar.dart';
-import 'package:babyshophub/views/common/drawer.dart';
 import 'package:flutter/material.dart';
 
 class AdminCustomScaffold extends StatefulWidget {
@@ -126,6 +125,7 @@ class MyDrawer extends StatelessWidget {
             },
             leading: const Icon(Icons.home),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             title: const Text(
@@ -141,6 +141,7 @@ class MyDrawer extends StatelessWidget {
             },
             leading: const Icon(Icons.home),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             title: const Text(
@@ -156,6 +157,7 @@ class MyDrawer extends StatelessWidget {
             },
             leading: const Icon(Icons.home),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             title: const Text(
@@ -171,6 +173,7 @@ class MyDrawer extends StatelessWidget {
             },
             leading: const Icon(Icons.home),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             title: const Text(
@@ -186,6 +189,7 @@ class MyDrawer extends StatelessWidget {
             },
             leading: const Icon(Icons.home),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             title: const Text(
@@ -201,6 +205,7 @@ class MyDrawer extends StatelessWidget {
             },
             leading: const Icon(Icons.home),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             title: const Text(
@@ -216,6 +221,7 @@ class MyDrawer extends StatelessWidget {
             },
             leading: const Icon(Icons.home),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             title: const Text(
@@ -226,11 +232,16 @@ class MyDrawer extends StatelessWidget {
               print("Clicked On Show Product");
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ChatScreen(currentUserUid: "4dwinBS5lVRMsNyeMLIUASIHFYs1",recipientUid: "W61jBbxY3KY3JxL4wMdMeMIH9qr1",)),
+                MaterialPageRoute(
+                    builder: (context) => ChatScreen(
+                          currentUserUid: "4dwinBS5lVRMsNyeMLIUASIHFYs1",
+                          recipientUid: "W61jBbxY3KY3JxL4wMdMeMIH9qr1",
+                        )),
               );
             },
             leading: const Icon(Icons.home),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             // title: const Text("Logout",style: TextStyle(fontSize: 20),).onTap(() {Get.off(()=>const HomeScreen());}),
@@ -247,6 +258,7 @@ class MyDrawer extends StatelessWidget {
             },
             leading: const Icon(Icons.logout),
             horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
         ],
       ),

@@ -43,9 +43,13 @@ class _AllProductScreenState extends State<AllProductScreen> {
           .get();
 
       setState(() {
-        _categories = querySnapshot.docs.map((doc) {
-          return {"id": doc.id, "name": doc['name']};
-        }).toList();
+        // Add the custom category "All" with ID 0
+        _categories = [
+          {"id": "all", "name": "All"},
+          ...querySnapshot.docs.map((doc) {
+            return {"id": doc.id, "name": doc['name']};
+          }).toList(),
+        ];
       });
       // print("Categories are:");
       // print(_categories);
@@ -67,6 +71,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Product List'),
@@ -96,7 +101,11 @@ class _AllProductScreenState extends State<AllProductScreen> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.filter_list, color: mainColor),
+                icon: const Icon(
+                  Icons.filter_list,
+                  color: mainColor,
+                  size: 20,
+                ),
                 onPressed: () {
                   // Open the drawer using the scaffold key
                   _scaffoldKey.currentState!.openDrawer();
@@ -107,6 +116,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
           Padding(
             padding: EdgeInsets.all(8.0),
             child: TextField(
+              style: TextStyle(color: Colors.black),
               controller: _searchController,
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
@@ -133,107 +143,144 @@ class _AllProductScreenState extends State<AllProductScreen> {
 
                 List<DocumentSnapshot> products = snapshot.data!.docs;
 
-                return ListView.builder(
-                  itemCount: products.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    Map<String, dynamic> productData =
-                        products[index].data() as Map<String, dynamic>;
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: products.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      Map<String, dynamic> productData =
+                          products[index].data() as Map<String, dynamic>;
 
-                    return FutureBuilder<bool>(
-                      future: _controllerWishlist
-                          .isProductInWishlist(products[index].id),
-                      builder: (context, snapshot) {
-                        bool isProductInWishlist = snapshot.data ?? false;
+                      // Fetch category name for the current product
+                      Future<DocumentSnapshot> categoryFuture =
+                          FirebaseFirestore.instance
+                              .collection('categories')
+                              .doc(productData['category_id_fk'])
+                              .get();
 
-                        return FutureBuilder<bool>(
-                          future: _controllerCart
-                              .isProductInCart(products[index].id),
-                          builder: (context, snapshot) {
-                            bool isProductCart = snapshot.data ?? false;
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: categoryFuture,
+                        builder: (context, categorySnapshot) {
+                          String categoryName = 'Unknown';
 
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProductDetails(
-                                      productId: products[index].id,
+                          if (categorySnapshot.hasData &&
+                              categorySnapshot.data!.data() != null) {
+                            categoryName = ((categorySnapshot.data!.data()
+                                    as Map<String, dynamic>)['name'] ??
+                                'Unknown') as String;
+                          }
+
+                          return FutureBuilder<bool>(
+                            future: _controllerWishlist
+                                .isProductInWishlist(products[index].id),
+                            builder: (context, wishlistSnapshot) {
+                              bool isProductInWishlist =
+                                  wishlistSnapshot.data ?? false;
+
+                              return FutureBuilder<bool>(
+                                future: _controllerCart
+                                    .isProductInCart(products[index].id),
+                                builder: (context, cartSnapshot) {
+                                  bool isProductCart =
+                                      cartSnapshot.data ?? false;
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ProductDetails(
+                                            productId: products[index].id,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Card(
+                                      elevation: 2.0,
+                                      margin: EdgeInsets.all(8.0),
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          backgroundImage: NetworkImage(
+                                              productData['imageUrls'][0]),
+                                        ),
+                                        title: Text(productData['name']),
+                                        subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                                'Price: \$${productData['price']}'),
+                                            Text('Category: $categoryName'),
+                                          ],
+                                        ),
+                                        trailing: IconButton(
+                                          icon: Icon(Icons.add_shopping_cart,
+                                              color: textColor),
+                                          onPressed: () async {
+                                            await _controllerCart.addToCart(
+                                                products[index].id, 1);
+                                            isProductCart
+                                                ? showToast('Already In Cart')
+                                                : showToast('Added to Cart');
+                                            setState(() {});
+                                          },
+                                        ),
+                                        // trailing: Column(
+                                        //   mainAxisAlignment: MainAxisAlignment.center,
+                                        //   crossAxisAlignment:
+                                        //       CrossAxisAlignment.start,
+                                        //   children: [
+                                        //     isProductInWishlist
+                                        //         ? IconButton(
+                                        //             icon: Icon(Icons.favorite,
+                                        //                 color: Colors.red),
+                                        //             onPressed: () async {
+                                        //               await _controllerWishlist
+                                        //                   .removeFromWishlist(
+                                        //                       products[index].id);
+                                        //               showToast(
+                                        //                   'Removed from Wishlist');
+                                        //               setState(() {});
+                                        //             },
+                                        //           )
+                                        //         : IconButton(
+                                        //             icon: Icon(Icons.favorite_border,
+                                        //                 color: Colors.white),
+                                        //             onPressed: () async {
+                                        //               await _controllerWishlist
+                                        //                   .addToWishlist(
+                                        //                       products[index].id);
+                                        //               showToast('Added to Wishlist');
+                                        //               setState(() {});
+                                        //             },
+                                        //           ),
+                                        //     SizedBox(
+                                        //       height: 5,
+                                        //     ),
+                                        //     IconButton(
+                                        //       icon: Icon(Icons.add_shopping_cart,
+                                        //           color: textColor),
+                                        //       onPressed: () async {
+                                        //         await _controllerCart.addToCart(
+                                        //             products[index].id, 1);
+                                        //         isProductCart
+                                        //             ? showToast('Already In Cart')
+                                        //             : showToast('Added to Cart');
+                                        //         setState(() {});
+                                        //       },
+                                        //     ),
+                                        //   ],
+                                        // ),
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                              child: Card(
-                                elevation: 2.0,
-                                margin: EdgeInsets.all(8.0),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundImage: NetworkImage(
-                                        productData['imageUrls'][0]),
-                                  ),
-                                  title: Text(productData['name']),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Price: \$${productData['price']}'),
-                                      Text(
-                                          'Quantity: ${productData['quantity']}'),
-                                    ],
-                                  ),
-                                  trailing: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      isProductInWishlist
-                                          ? IconButton(
-                                              icon: Icon(Icons.favorite,
-                                                  color: Colors.red),
-                                              onPressed: () async {
-                                                await _controllerWishlist
-                                                    .removeFromWishlist(
-                                                        products[index].id);
-                                                showToast(
-                                                    'Removed from Wishlist');
-                                                setState(() {});
-                                              },
-                                            )
-                                          : IconButton(
-                                              icon: Icon(Icons.favorite_border,
-                                                  color: Colors.white),
-                                              onPressed: () async {
-                                                await _controllerWishlist
-                                                    .addToWishlist(
-                                                        products[index].id);
-                                                showToast('Added to Wishlist');
-                                                setState(() {});
-                                              },
-                                            ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.add_shopping_cart,
-                                            color: textColor),
-                                        onPressed: () async {
-                                          await _controllerCart.addToCart(
-                                              products[index].id, 1);
-                                          isProductCart
-                                              ? showToast('Already In Cart')
-                                              : showToast('Added to Cart');
-                                          setState(() {});
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 );
               },
             ),
@@ -321,15 +368,10 @@ class _AllProductScreenState extends State<AllProductScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  DrawerHeader(
-                    child: Text('Price Search Drawer'),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                    ),
-                  ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextField(
+                      style: TextStyle(color: Colors.black),
                       controller: lowPriceController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(labelText: 'Low Price'),
@@ -338,6 +380,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextField(
+                      style: TextStyle(color: Colors.black),
                       controller: highPriceController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(labelText: 'High Price'),
@@ -345,8 +388,8 @@ class _AllProductScreenState extends State<AllProductScreen> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      _onSearchChanged;
                       Navigator.pop(context); // Close the drawer
+                      _onSearchChanged("");
                     },
                     child: Center(child: Text('Search')),
                   ),
@@ -387,7 +430,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                       } else {
                         priceAscending = false;
                       }
-                      _onSearchChanged;
+                      _onSearchChanged("");
                     },
                   ),
                 ],
@@ -425,7 +468,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                       } else {
                         nameAscending = false;
                       }
-                      _onSearchChanged;
+                      _onSearchChanged("");
                       // You can perform any action with the selected value here
                     },
                   ),
@@ -488,8 +531,9 @@ class _AllProductScreenState extends State<AllProductScreen> {
   }
 
   void _onSearchChanged(String value) {
-    setState(() {
-      // Trigger rebuild with the updated search term
-    });
-  }
+  setState(() {
+    // Trigger the rebuild with the updated search term
+    // This will cause the StreamBuilder to re-run the query with the new search term
+  });
+}
 }

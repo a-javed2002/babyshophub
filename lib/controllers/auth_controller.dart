@@ -1,5 +1,3 @@
-import 'dart:js_interop';
-
 import 'package:babyshophub/views/common/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -136,6 +134,10 @@ Future<User?> signInWithFacebook() async {
     return null;
   }
 }
+
+  String get name {
+    return _auth.currentUser?.displayName ?? '';
+  }
 
   // Future<User?> signInWithTwitter() async {
   //   try {

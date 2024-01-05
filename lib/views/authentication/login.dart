@@ -6,7 +6,6 @@ import 'package:babyshophub/views/Profile/reset-password.dart';
 import 'package:babyshophub/views/admin/dashboard.dart';
 import 'package:babyshophub/views/common/loader.dart';
 import 'package:babyshophub/views/common/pop-up.dart';
-import 'package:babyshophub/main.dart';
 import 'package:babyshophub/views/authentication/signup.dart';
 import 'package:babyshophub/views/home/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -320,30 +319,34 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         height: 30,
                       ),
-                      FadeInUp(
-                          duration: Duration(milliseconds: 1900),
-                          child: isLoading
-                              ? CustomLoader()
-                              : GestureDetector(
-                                  onTap: () {
-                                    if (_emailController.text.isNotEmpty &&
-                                        _passwordController.text.isNotEmpty) {
-                                      login(_emailController.text,
-                                          _passwordController.text);
-                                    } else {
-                                      CustomPopup(
-                                        message: 'Fill All Fields',
-                                        isSuccess: false,
-                                      );
-                                    }
-                                  },
-                                  child: Container(
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      gradient: LinearGradient(
-                                        colors:
-                                            (_emailController.text.isNotEmpty &&
+                      isLoading
+                          ? CustomLoader()
+                          : Column(
+                              children: [
+                                FadeInUp(
+                                    duration: Duration(milliseconds: 1900),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        if (_emailController.text.isNotEmpty &&
+                                            _passwordController
+                                                .text.isNotEmpty) {
+                                          login(_emailController.text,
+                                              _passwordController.text);
+                                        } else {
+                                          CustomPopup(
+                                            message: 'Fill All Fields',
+                                            isSuccess: false,
+                                          );
+                                        }
+                                      },
+                                      child: Container(
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          gradient: LinearGradient(
+                                            colors: (_emailController
+                                                        .text.isNotEmpty &&
                                                     _passwordController
                                                         .text.isNotEmpty)
                                                 ? [
@@ -358,78 +361,85 @@ class _LoginPageState extends State<LoginPage> {
                                                     Color.fromRGBO(
                                                         143, 148, 251, .6),
                                                   ],
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "Login",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            "Login",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                )),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      FadeInUp(
-                          duration: Duration(milliseconds: 1900),
-                          child: isLoading
-                              ? CustomLoader()
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SocialButton(
-                                      image:
-                                          'assets/icons/google_logo.png', // Replace with your Google logo image path
-                                      onPressed: () async {
-                                    UserCredential? userCredential =
-                                        await _authController.handleGoogleSignIn();
-                                    if (userCredential != null) {
-                                      print(
-                                          "Signed in: ${userCredential.user?.displayName}");
-                                      // Navigate to the next screen or perform other actions
-                                    } else {
-                                      print("Sign-in canceled or failed");
-                                    }
-                                  },
-                                    ),
-                                    SizedBox(width: 16),
-                                    SocialButton(
-                                      image:
-                                          'assets/icons/facebook_logo.png', // Replace with your Facebook logo image path
-                                      onPressed: () async {
-                                    UserCredential? userCredential =
-                                        await _authController.handleGoogleSignIn();
-                                    if (userCredential != null) {
-                                      print(
-                                          "Signed in: ${userCredential.user?.displayName}");
-                                      // Navigate to the next screen or perform other actions
-                                    } else {
-                                      print("Sign-in canceled or failed");
-                                    }
-                                  },
-                                    ),
-                                    SizedBox(width: 16),
-                                    SocialButton(
-                                      image:
-                                          'assets/icons/github_logo.png', // Replace with your GitHub logo image path
-                                      onPressed: () async {
-                                    UserCredential? userCredential =
-                                        await _authController.handleGoogleSignIn();
-                                    if (userCredential != null) {
-                                      print(
-                                          "Signed in: ${userCredential.user?.displayName}");
-                                      // Navigate to the next screen or perform other actions
-                                    } else {
-                                      print("Sign-in canceled or failed");
-                                    }
-                                  },
-                                    ),
-                                  ],
-                                )),
+                                    )),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                FadeInUp(
+                                    duration: Duration(milliseconds: 1900),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SocialButton(
+                                          image:
+                                              'assets/icons/google_logo.png', // Replace with your Google logo image path
+                                          onPressed: () async {
+                                            UserCredential? userCredential =
+                                                await _authController
+                                                    .handleGoogleSignIn();
+                                            if (userCredential != null) {
+                                              print(
+                                                  "Signed in: ${userCredential.user?.displayName}");
+                                              // Navigate to the next screen or perform other actions
+                                            } else {
+                                              print(
+                                                  "Sign-in canceled or failed");
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(width: 16),
+                                        SocialButton(
+                                          image:
+                                              'assets/icons/facebook_logo.png', // Replace with your Facebook logo image path
+                                          onPressed: () async {
+                                            User? userCredential =
+                                                await _authController
+                                                    .signInWithFacebook();
+                                            if (userCredential != null) {
+                                              print(
+                                                  "Signed in: ${userCredential.displayName}");
+                                              // Navigate to the next screen or perform other actions
+                                            } else {
+                                              print(
+                                                  "Sign-in canceled or failed");
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(width: 16),
+                                        SocialButton(
+                                          image:
+                                              'assets/icons/github_logo.png', // Replace with your GitHub logo image path
+                                          onPressed: () async {
+                                            UserCredential? userCredential =
+                                                await _authController
+                                                    .signInWithGithub();
+                                            if (userCredential != null) {
+                                              print(
+                                                  "Signed in: ${userCredential.user?.displayName}");
+                                              // Navigate to the next screen or perform other actions
+                                            } else {
+                                              print(
+                                                  "Sign-in canceled or failed");
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    )),
+                              ],
+                            ),
                       SizedBox(
                         height: 10,
                       ),

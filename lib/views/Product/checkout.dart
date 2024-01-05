@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:babyshophub/consts/consts.dart';
+import 'package:babyshophub/controllers/auth_controller.dart';
 import 'package:babyshophub/controllers/cart_controller.dart';
 import 'package:babyshophub/views/Orders/orders.dart';
-import 'package:babyshophub/views/home/home.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,8 +23,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final CartController _cartController = CartController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
+  final AuthController _authController = AuthController();
 
+  double grandTotal = 0;
+  int totalOrderedItems = 0;
+  int totalQuantity = 0;
+  
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _nameController.text=_authController.name;
+  }
+
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -59,13 +71,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     final productData =
                         productSnapshot.data!.data() as Map<String, dynamic>;
 
+                    // Calculate total cost based on quantity
+                    double totalCost =
+                        quantity * productData['price'].toDouble();
+
+                    // Update totals
+                    grandTotal += totalCost;
+                    totalOrderedItems++;
+                    totalQuantity += int.parse(quantity.toString());
+                    print(grandTotal);
+                    print(totalOrderedItems);
+                    print(totalQuantity);
+
                     return ListTile(
                       leading: Container(
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: NetworkImage(productData['imageUrls']),
+                            image: NetworkImage(productData['imageUrls'][0]),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -75,14 +99,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           Text(productData['name']),
                           Text('Price: \$${productData['price'].toString()}'),
-                          Text(
-                              'Quantity: ${productData['quantity'].toString()}'),
+                          Text('Quantity: ${quantity.toString()}'),
+                          Text('Total: \$${totalCost.toStringAsFixed(2)}'),
                         ],
                       ),
                     );
                   },
                 );
               },
+            ),
+          ),
+          // Display totals
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text('Grand Total: \$${grandTotal.toStringAsFixed(2)}'),
+                Text('Total Ordered Items: $totalOrderedItems'),
+                Text('Total Quantity: $totalQuantity'),
+                // ... (Your existing form fields)
+              ],
             ),
           ),
           Padding(
@@ -451,3 +487,4 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 }
+

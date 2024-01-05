@@ -10,7 +10,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AddCategory extends StatefulWidget {
   const AddCategory({super.key});

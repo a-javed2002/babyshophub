@@ -1,3 +1,4 @@
+import 'package:babyshophub/views/home/landingPage.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
@@ -7,7 +8,7 @@ import 'package:mailer/smtp_server.dart';
 class MyEmail extends StatelessWidget {
 
 Future<void> sendOrderConfirmationEmail(String userEmailAddress) async {
-  final smtpServer = gmail('a.javed0202@gmail.com', 'HUNTER_DEVELOPER');
+  final smtpServer = gmail('a.javed0202@gmail.com', '');
 
   final message = Message()
     ..from = Address('a.javed0202@gmail.com', 'Abdullah Javed')

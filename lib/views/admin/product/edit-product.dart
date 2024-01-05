@@ -1,83 +1,165 @@
 import 'dart:io';
 
-import 'package:babyshophub/views/admin/product/show-product.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:babyshophub/consts/consts.dart';
-import 'package:babyshophub/views/common/admin-scaffold.dart';
+import 'package:babyshophub/consts/colors.dart';
 import 'package:babyshophub/views/common/toast.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
-class EditProduct extends StatefulWidget {
+class EditProductDialog extends StatefulWidget {
   final String productId;
+  final String productName;
+  final String productDescription;
+  final String productStatus;
+  final String productPrice;
+  final String productQuantity;
+  final List<String> productImageUrl;
 
-  const EditProduct({Key? key, required this.productId}) : super(key: key);
+  EditProductDialog({
+    required this.productId,
+    required this.productName,
+    required this.productDescription,
+    required this.productImageUrl,
+    required this.productPrice,
+    required this.productStatus,
+    required this.productQuantity,
+  });
 
   @override
-  _EditProductState createState() => _EditProductState();
+  _EditProductDialogState createState() => _EditProductDialogState();
 }
 
-class _EditProductState extends State<EditProduct> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  late String _productName;
-  late String _description;
-  late double _price;
-  late int _quantity;
-  late String _selectedCategoryId = ""; // Add this for the selected category
+class _EditProductDialogState extends State<EditProductDialog> {
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  bool temp = false;
   FilePickerResult? result;
   late File _selectedImage;
-
-  List<Map<String, dynamic>> _categories = [];
 
   @override
   void initState() {
     super.initState();
-    // Fetch product details when the widget initializes
-    _fetchProductDetails();
-    // Fetch categories when the widget initializes
-    _fetchCategories();
+    _nameController = TextEditingController(text: widget.productName);
+    _descriptionController =
+        TextEditingController(text: widget.productDescription);
   }
 
-  Future<void> _fetchProductDetails() async {
-    try {
-      final DocumentSnapshot productDoc = await FirebaseFirestore.instance
-          .collection(productsCollection)
-          .doc(widget.productId)
-          .get();
-
-      setState(() {
-        _productName = productDoc['name'];
-        _description = productDoc['description'];
-        _price = productDoc['price'].toDouble();
-        _quantity = productDoc['quantity'];
-        _selectedCategoryId = productDoc['category_id_fk'];
-      });
-    } catch (e) {
-      print('Error loading product details: $e');
-    }
-  }
-
-  Future<void> _fetchCategories() async {
-    try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection(categoriesCollection)
-          .get();
-
-      setState(() {
-        _categories = querySnapshot.docs.map((doc) {
-          return {"id": doc.id, "name": doc['name']};
-        }).toList();
-      });
-      print("cat are");
-      print(_categories);
-    } catch (e) {
-      print('Error fetching categories: $e');
-      // Handle the error as needed
-    }
+  @override
+  Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    return AlertDialog(
+      title: Text("Edit Product"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              print("Container tapped!");
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return Dialog(
+                    insetPadding: EdgeInsets.zero,
+                    child: Container(
+                      // width: context.screenWidth,
+                      // height: context.screenHeight,
+                      color: mainLightColor,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: textColor,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              print("Dialog closed");
+                            },
+                          ),
+                          Expanded(
+                              child: Container(
+                            child: Image.network(widget.productImageUrl[0]),
+                          )),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                  onPressed: () async {
+                                    await removeProductImageUrl(
+                                        imageUrlToRemove: widget.productImageUrl[0],
+                                        productId: widget.productId);
+                                  },
+                                  icon: Icon(
+                                    Icons.remove,
+                                    color: Colors.red,
+                                  )),
+                              IconButton(
+                                  onPressed: () {
+                                    Navigator.pop(
+                                        context); // Optionally close the pop-up
+                                    showAddImageDialogBox();
+                                  },
+                                  icon: Icon(
+                                    Icons.edit,
+                                    color: Colors.lightBlue,
+                                  )),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            child: CircleAvatar(
+              radius: screenWidth * 0.1,
+              backgroundImage: NetworkImage(widget.productImageUrl[0]),
+              backgroundColor: Colors.transparent,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: mainColor,
+                    width: 2.0,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(labelText: "Name"),
+          ),
+          TextField(
+            controller: _descriptionController,
+            decoration: InputDecoration(labelText: "Description"),
+          ),
+          // Add other fields or widgets as needed...
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () {
+            // Save the changes
+            Navigator.of(context).pop(true);
+            setState(() {});
+          },
+          child: Text("Save"),
+        ),
+      ],
+    );
   }
 
   Future<void> _getImage() async {
@@ -123,90 +205,43 @@ class _EditProductState extends State<EditProduct> {
         : Container();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AdminCustomScaffold(
+  void showAddImageDialogBox() {
+    showDialog(
       context: context,
-      appBarTitle: "Edit Product",
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select New Profile'),
+          actions: [
+            // Cancel Button
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+
+            // Add Button
+            TextButton(
+              onPressed: () async {
+                // Upload the image to storage
+                String? imageUrl = await _uploadImageToStorage();
+
+                // Check if imageUrl is not null before further processing
+                if (imageUrl != null) {
+                  // Do something with the imageUrl, e.g., update UI or send to Firestore
+                  print('New profile image URL: $imageUrl');
+                  await updateProductImage(
+                      newProductImageUrl: imageUrl, productId: widget.productId);
+                }
+
+                // Close the dialog
+                Navigator.pop(context);
+              },
+              child: Text('Add'),
+            ),
+          ],
+          content: Column(
             children: [
-              TextFormField(
-                initialValue: _productName,
-                decoration: InputDecoration(labelText: 'Product Name'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the product name';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _productName = value!,
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                initialValue: _description,
-                decoration: InputDecoration(labelText: 'Description'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the description';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _description = value!,
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                initialValue: _price.toString(),
-                decoration: InputDecoration(labelText: 'Price'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the price';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _price = double.parse(value!),
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                initialValue: _quantity.toString(),
-                decoration: InputDecoration(labelText: 'Quantity'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the quantity';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _quantity = int.parse(value!),
-              ),
-              SizedBox(height: 16),
-              // DropdownButtonFormField<String>(
-              //   value: _selectedCategoryId,
-              //   items: _categories.map((category) {
-              //     return DropdownMenuItem<String>(
-              //       value: category['id'].toString(),
-              //       child: Text(category['name']),
-              //     );
-              //   }).toList(),
-              //   decoration: InputDecoration(labelText: 'Select Category'),
-              //   onChanged: (value) {
-              //     setState(() {
-              //       _selectedCategoryId = value!;
-              //     });
-              //   },
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please select a category';
-              //     }
-              //     return null;
-              //   },
-              // ),
-              SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
                   _getImage();
@@ -225,84 +260,40 @@ class _EditProductState extends State<EditProduct> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
               getImageWidget(),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  _submitForm();
-                },
-                child: Text('Submit'),
-              ),
             ],
-          ),
-        ),
-      ),
+          ), // Display the image widget or use other UI elements
+        );
+      },
     );
   }
 
-  Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+  Future<void> updateProductImage({
+  required String newProductImageUrl,
+  required String productId,
+}) async {
+  try {
+    // Update the imageUrls field in the "products" collection
+    await FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId)
+        .update({
+      'imageUrls': FieldValue.arrayUnion([newProductImageUrl]),
+    });
 
-      // Check if the product name already exists
-      bool isDuplicate = await _checkDuplicateProduct();
-
-      if (isDuplicate) {
-        // Handle duplicate product name
-        print('Duplicate product name');
-        ToastWidget.show(
-          message: 'Duplicate product name. Please choose a different name.',
-          gravity: ToastGravity.CENTER,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-        );
-      } else {
-        // Upload the images to Firebase Storage
-        String? imageUrl = await _uploadImageToStorage();
-
-        try {
-          // Update the data in Firestore
-          await FirebaseFirestore.instance
-              .collection(productsCollection)
-              .doc(widget.productId)
-              .update({
-            'name': _productName,
-            'description': _description,
-            'price': _price,
-            'quantity': _quantity,
-            'category_id_fk': "IV9vIA3sIxrpiV5UB8zX",
-            // 'category_id_fk': _selectedCategoryId,
-            'imageUrls': imageUrl,
-            'last_update_date': FieldValue.serverTimestamp(),
-          });
-
-          // Navigate back to the product list screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ShowProduct()),
-          );
-
-          // Show a success message
-          Fluttertoast.showToast(
-            msg: 'Product updated successfully',
-            gravity: ToastGravity.CENTER,
-            backgroundColor: Colors.green,
-            textColor: Colors.white,
-          );
-        } catch (e) {
-          print('Error updating product: $e');
-          // Show an error message
-          ToastWidget.show(
-            message: 'Error updating product: $e',
-            gravity: ToastGravity.CENTER,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-          );
-        }
-      }
-    }
+    print('ProductImage updated successfully.');
+    // Optional: Display a success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('ProductImage updated successfully.'),
+      ),
+    );
+    setState(() {});
+  } catch (e) {
+    // Handle errors
+    print('Error updating ProductImage: $e');
   }
+}
 
   Future<String?> _uploadImageToStorage() async {
     try {
@@ -334,23 +325,38 @@ class _EditProductState extends State<EditProduct> {
     }
   }
 
-  Future<bool> _checkDuplicateProduct() async {
-    try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection(productsCollection)
-          .where('name', isEqualTo: _productName)
-          .get();
+  Future<void> removeProductImageUrl({
+  required String imageUrlToRemove,
+  required String productId,
+}) async {
+  try {
+    // Remove the imageUrlToRemove from the imageUrls field in the "products" collection
+    await FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId)
+        .update({
+      'imageUrls': FieldValue.arrayRemove([imageUrlToRemove],
+      ),
+    });
 
-      // Exclude the current product from the duplicate check
-      if (querySnapshot.docs.isNotEmpty &&
-          querySnapshot.docs.first.id != widget.productId) {
-        return true;
-      }
+    // Remove the image from Firestore Storage
+    final storageReference =
+        FirebaseStorage.instance.ref().child('product_images/$productId');
 
-      return false;
-    } catch (e) {
-      print('Error checking duplicate product: $e');
-      return false; // Assume no duplicate if there is an error
-    }
+    await storageReference.child(imageUrlToRemove).delete();
+
+    print('ProductImage removed successfully.');
+    // Optional: Display a success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('ProductImage removed successfully.'),
+      ),
+    );
+    setState(() {});
+  } catch (e) {
+    // Handle errors
+    print('Error removing ProductImage: $e');
   }
+}
+
 }

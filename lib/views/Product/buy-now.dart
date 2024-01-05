@@ -5,7 +5,7 @@ class ProductDetailsPopup extends StatefulWidget {
   final String productId;
   final String productName;
   final double productPrice;
-  final String productImage;
+  final List productImage;
 
   ProductDetailsPopup({
     required this.productId,
@@ -28,7 +28,7 @@ class _ProductDetailsPopupState extends State<ProductDetailsPopup> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.network(
-            widget.productImage,
+            widget.productImage[0],
             width: 120,
             height: 120,
           ),
@@ -69,6 +69,8 @@ class _ProductDetailsPopupState extends State<ProductDetailsPopup> {
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
               onPressed: () {
+                Navigator.pop(context); // Close the pop-up
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -78,12 +80,11 @@ class _ProductDetailsPopupState extends State<ProductDetailsPopup> {
                         "quantity": quantity,
                         "name": widget.productName,
                         "price": widget.productPrice,
-                        "imageUrls": widget.productName,
+                        "imageUrls": widget.productImage,
                       }
                     ]),
                   ),
                 );
-                Navigator.pop(context); // Close the pop-up
               },
               child: Text('Buy Now'),
             ),

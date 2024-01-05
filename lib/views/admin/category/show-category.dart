@@ -134,7 +134,7 @@ class ShowCategory extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Confirm Delete"),
-          content: Text("Are you sure you want to delete this category?"),
+          content: Text("Are you sure you want to delete this category?\nAll Related Products Will Get Inactive"),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -180,13 +180,14 @@ class ShowCategory extends StatelessWidget {
     // Retrieve category data
     String categoryName = category['name'];
     String categoryDescription = category['description'];
-    List<String> categoryImageUrl = category['imageUrl'];
+    String categoryImageUrl = category['imageUrl'];
 
     // Show the edit category dialog
     bool result = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return EditCategoryDialog(
+          categoryId: category.id,
           categoryName: categoryName,
           categoryDescription: categoryDescription,
           categoryImageUrl: categoryImageUrl,
@@ -196,6 +197,7 @@ class ShowCategory extends StatelessWidget {
 
     // Update Firestore if the user pressed "Save" in the dialog
     if (result == true) {
+      print("updating to $categoryDescription");
       try {
         await FirebaseFirestore.instance
             .collection(categoriesCollection)
@@ -204,7 +206,9 @@ class ShowCategory extends StatelessWidget {
           'name': categoryName,
           'description': categoryDescription,
           'imageUrl': categoryImageUrl,
+          'last_update_date': FieldValue.serverTimestamp(),
         });
+        
         print('Category updated successfully');
       } catch (e) {
         print('Error updating category: $e');

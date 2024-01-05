@@ -1,13 +1,11 @@
 import 'dart:async';
 
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/views/OnBoarding/onBoarding.dart';
 import 'package:babyshophub/views/admin/dashboard.dart';
 import 'package:babyshophub/views/authentication/login.dart';
 import 'package:babyshophub/views/home/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';

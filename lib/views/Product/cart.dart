@@ -33,7 +33,7 @@ class _CartScreenState extends State<CartScreen> {
 
       //update
       if (productSnapshot.exists && productSnapshot['status'] != -1) {
-        _cartController.addToCart(productId, quantity);
+        // _cartController.addToCart(productId, quantity);
       }
 
       // Check if the product exists and its status is not -1
@@ -152,7 +152,7 @@ class _CartScreenState extends State<CartScreen> {
                           "quantity": cartData[index]['quantity'],
                           "name": cartData[index]['name'],
                           "price": cartData[index]['price'],
-                          "imageUrls": cartData[index]['imageUrls'],
+                          "imageUrls": cartData[index]['imageUrls'][0],
                         });
 
                         return showHeading
@@ -233,7 +233,7 @@ class _CartScreenState extends State<CartScreen> {
                                               image: DecorationImage(
                                                 image: NetworkImage(
                                                     cartData[index]
-                                                        ['imageUrls']),
+                                                        ['imageUrls'][0]),
                                                 fit: BoxFit.cover,
                                               ),
                                             ),
@@ -355,7 +355,7 @@ class _CartScreenState extends State<CartScreen> {
                                         decoration: BoxDecoration(
                                           image: DecorationImage(
                                             image: NetworkImage(
-                                                cartData[index]['imageUrls']),
+                                                cartData[index]['imageUrls'][0]),
                                             fit: BoxFit.cover,
                                           ),
                                         ),

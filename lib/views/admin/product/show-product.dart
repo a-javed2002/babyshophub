@@ -68,11 +68,12 @@ class ShowProduct extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => EditProduct(productId: product.id,)),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //       builder: (context) => EditProduct(productId: product.id,)),
+                        // );
+                        _editProduct(context, product);
                       },
                     ),
                     IconButton(
@@ -90,6 +91,54 @@ class ShowProduct extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<void> _editProduct(BuildContext context, QueryDocumentSnapshot product) async {
+    // Retrieve category data
+    String productName = product['name'];
+    String productStatus = product['status'];
+    String productPrice = product['price'];
+    String productQuantity = product['quantity'];
+    String productDescription = product['description'];
+    List<String> productImageUrl = product['imageUrl'];
+
+    // Show the edit category dialog
+    bool result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditProductDialog(
+          productId: product.id,
+          productName: productName,
+          productDescription: productDescription,
+          productImageUrl: productImageUrl,
+          productPrice: productPrice,
+          productQuantity: productQuantity,
+          productStatus: productStatus,
+        );
+      },
+    );
+
+    // Update Firestore if the user pressed "Save" in the dialog
+    if (result == true) {
+      print("updating to $productDescription");
+      try {
+        await FirebaseFirestore.instance
+            .collection(productsCollection)
+            .doc(product.id)
+            .update({
+          'name': productName,
+          'description': productDescription,
+          'price': productPrice,
+          'quantity': productQuantity,
+          'status': productStatus,
+          'last_update_date': FieldValue.serverTimestamp(),
+        });
+        
+        print('Category updated successfully');
+      } catch (e) {
+        print('Error updating category: $e');
+      }
+    }
   }
 
   Future<String> _getImageUrl(dynamic imageUrlData) async {

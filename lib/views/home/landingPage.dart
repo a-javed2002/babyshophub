@@ -1,5 +1,4 @@
 import 'package:animate_do/animate_do.dart';
-import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/views/Product/Category-All.dart';
 import 'package:babyshophub/views/Product/cart.dart';
 import 'package:babyshophub/views/Product/category.dart';
@@ -44,7 +43,7 @@ Widget LandingPage({required context}) {
               decoration: BoxDecoration(
                   image: DecorationImage(
                       image: AssetImage('assets/images/background.jpg'),
-                      fit: BoxFit.cover)),
+                      fit: BoxFit.fill)),
               child: Container(
                 decoration: BoxDecoration(
                     gradient:
@@ -221,191 +220,111 @@ Widget LandingPage({required context}) {
             )
           ],
         ),
-        FadeInUp(
-            duration: Duration(milliseconds: 1400),
-            child: Container(
-              padding: EdgeInsets.all(20),
-              child: Column(
+        Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(
-                        "Categories",
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Text("All")
-                    ],
+                  Text(
+                    "Best Selling",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  CategorySlider(),
-                  ProductSlider(),
+                  // Text("All")
                 ],
               ),
-            ))
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('products')
+                    .orderBy('timestamp',
+                        descending: true) // Add orderBy for timestamp
+                    .limit(8) // Limit the results to 8
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
+
+                  List<QueryDocumentSnapshot> products = snapshot.data!.docs;
+
+                  return Column(
+                      children: products.map((product) {
+                    return Card(
+                      elevation: 2.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ProductDetails(productId: product.id)),
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(10)),
+                              child: Image.network(
+                                product['imageUrls'][
+                                    0], // Replace with the field in your Firestore document for image URL
+                                height: 120,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    product[
+                                        'name'], // Replace with the field in your Firestore document for product name
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '\$${product['price'].toStringAsFixed(2)}', // Replace with the field in your Firestore document for product price
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList());
+                },
+              ),
+            ],
+          ),
+        ),
       ],
     ),
   );
 }
 
-class CategorySlider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(categoriesCollection)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        }
-
-        if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        }
-
-        List<QueryDocumentSnapshot> categories = snapshot.data!.docs;
-
-        if (categories.isEmpty) {
-          return Center(
-            child: Text('No categories found.'),
-          );
-        }
-
-        // Only take the top 5 categories
-        List<QueryDocumentSnapshot> topCategories = categories.take(5).toList();
-
-        return CarouselSlider.builder(
-          itemCount: topCategories.length + 1, // +1 for the custom text card
-          itemBuilder: (context, index, realIndex) {
-            if (index == topCategories.length) {
-              // Last card, add custom text
-              return AspectRatio(
-                aspectRatio: 2 / 2.2,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => CategoryShow()));
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(right: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.grey, // Set your desired background color
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 40,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.7),
-                              borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(10),
-                                bottomRight: Radius.circular(10),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "See All Categories",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            } else {
-              var category = topCategories[index];
-              return AspectRatio(
-                aspectRatio: 2 / 2.2,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => CategoryPage(
-                                  image: category['imageUrl'],
-                                  title: category['name'],
-                                  id: category.id,
-                                )));
-                  },
-                  child: Material(
-                    child: Container(
-                      margin: EdgeInsets.only(right: 20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.grey, // Set your desired background color
-                      ),
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomRight,
-                            colors: [
-                              Colors.black.withOpacity(.8),
-                              Colors.black.withOpacity(.0),
-                            ],
-                          ),
-                        ),
-                        child: Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Text(
-                            category['name'],
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }
-          },
-          options: CarouselOptions(
-            height: 200,
-            enlargeCenterPage: true,
-            viewportFraction: 0.8,
-            aspectRatio: 16 / 9,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class ProductSlider extends StatelessWidget {
+class ProductCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -429,67 +348,71 @@ class ProductSlider extends StatelessWidget {
 
         List<QueryDocumentSnapshot> topProducts = products.take(8).toList();
 
-        return GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 8.0,
-            mainAxisSpacing: 8.0,
-          ),
-          itemCount: topProducts.length,
-          itemBuilder: (context, index) {
-            var product = topProducts[index];
+        print("Products are ${topProducts.length}");
 
-            return FadeInUp(
-              // Wrap each Card with FadeInUp
-              duration: Duration(milliseconds: 1300),
-              child: Card(
-                elevation: 2.0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: InkWell(
-                  onTap: () {
-                    // Handle product tap
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ClipRRect(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(10)),
-                        child: Image.network(
-                          product['imageUrls'][0],
-                          height: 120,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product['name'],
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              '\$${product['price'].toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        return OrientationBuilder(
+          builder: (context, orientation) {
+            int crossAxisCount = (orientation == Orientation.portrait) ? 2 : 3;
+
+            return GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
               ),
+              itemCount: topProducts.length,
+              itemBuilder: (context, index) {
+                var product = topProducts[index];
+
+                return Card(
+                  elevation: 2.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      // Handle product tap
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ClipRRect(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(10)),
+                          child: Image.network(
+                            product['imageUrls'][0],
+                            height: 120,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product['name'],
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                '\$${product['price'].toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             );
           },
         );
@@ -497,13 +420,12 @@ class ProductSlider extends StatelessWidget {
     );
   }
 }
+
 class CatTags extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('categories')
-          .snapshots(),
+      stream: FirebaseFirestore.instance.collection('categories').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
@@ -549,7 +471,8 @@ class CatTags extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.blue,
                         borderRadius: BorderRadius.circular(16),
@@ -578,7 +501,8 @@ class CatTags extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.blue,
                         borderRadius: BorderRadius.circular(16),
