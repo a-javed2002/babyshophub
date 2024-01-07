@@ -3,10 +3,12 @@ import 'package:babyshophub/controllers/auth_controller.dart';
 import 'package:babyshophub/views/Chats/chats-details.dart';
 import 'package:babyshophub/views/admin/category/add-category.dart';
 import 'package:babyshophub/views/admin/category/show-category.dart';
+import 'package:babyshophub/views/admin/dashboard.dart';
 import 'package:babyshophub/views/admin/order/orders.dart';
 import 'package:babyshophub/views/Chats/chats.dart';
 import 'package:babyshophub/views/admin/product/add-product.dart';
 import 'package:babyshophub/views/admin/product/show-product.dart';
+import 'package:babyshophub/views/admin/profile.dart';
 import 'package:babyshophub/views/admin/users.dart';
 import 'package:babyshophub/views/authentication/Login.dart';
 import 'package:babyshophub/views/common/appBar.dart';
@@ -90,18 +92,26 @@ class MyDrawer extends StatelessWidget {
                     ),
                   ],
                 ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipOval(
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage("assets/images/profile.jpg"),
-                            fit: BoxFit.cover,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyProfileAdmin()),
+                    );
+                  },
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ClipOval(
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage("assets/images/profile.jpg"),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
@@ -110,6 +120,22 @@ class MyDrawer extends StatelessWidget {
                 )
               ],
             ),
+          ),
+          ListTile(
+            title: const Text(
+              "Dashboard",
+              style: TextStyle(fontSize: 20, color: Colors.black),
+            ),
+            onTap: () {
+              print("Clicked On Add Category");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyDashboard()),
+              );
+            },
+            leading: const Icon(Icons.home),
+            horizontalTitleGap: 0,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
           ListTile(
             title: const Text(
@@ -123,7 +149,7 @@ class MyDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => AddCategory()),
               );
             },
-            leading: const Icon(Icons.home),
+            leading: const Icon(Icons.add),
             horizontalTitleGap: 0,
             contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
@@ -139,7 +165,7 @@ class MyDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => ShowCategory()),
               );
             },
-            leading: const Icon(Icons.home),
+            leading: const Icon(Icons.document_scanner),
             horizontalTitleGap: 0,
             contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
@@ -155,7 +181,7 @@ class MyDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => AddProduct()),
               );
             },
-            leading: const Icon(Icons.home),
+            leading: const Icon(Icons.add),
             horizontalTitleGap: 0,
             contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
@@ -171,7 +197,7 @@ class MyDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => ShowProduct()),
               );
             },
-            leading: const Icon(Icons.home),
+            leading: const Icon(Icons.document_scanner),
             horizontalTitleGap: 0,
             contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
@@ -187,7 +213,7 @@ class MyDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => OrdersScreen()),
               );
             },
-            leading: const Icon(Icons.home),
+            leading: const Icon(Icons.document_scanner),
             horizontalTitleGap: 0,
             contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
@@ -203,7 +229,7 @@ class MyDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => ChatListScreen()),
               );
             },
-            leading: const Icon(Icons.home),
+            leading: const Icon(Icons.chat),
             horizontalTitleGap: 0,
             contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
@@ -219,30 +245,30 @@ class MyDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => MyUsers()),
               );
             },
-            leading: const Icon(Icons.home),
+            leading: const Icon(Icons.person),
             horizontalTitleGap: 0,
             contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
-          ListTile(
-            title: const Text(
-              "ChatsR",
-              style: TextStyle(fontSize: 20, color: Colors.black),
-            ),
-            onTap: () {
-              print("Clicked On Show Product");
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ChatScreen(
-                          currentUserUid: "4dwinBS5lVRMsNyeMLIUASIHFYs1",
-                          recipientUid: "W61jBbxY3KY3JxL4wMdMeMIH9qr1",
-                        )),
-              );
-            },
-            leading: const Icon(Icons.home),
-            horizontalTitleGap: 0,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16),
-          ),
+          // ListTile(
+          //   title: const Text(
+          //     "ChatsR",
+          //     style: TextStyle(fontSize: 20, color: Colors.black),
+          //   ),
+          //   onTap: () {
+          //     print("Clicked On Show Product");
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //           builder: (context) => ChatScreen(
+          //                 currentUserUid: "4dwinBS5lVRMsNyeMLIUASIHFYs1",
+          //                 recipientUid: "W61jBbxY3KY3JxL4wMdMeMIH9qr1",
+          //               )),
+          //     );
+          //   },
+          //   leading: const Icon(Icons.edit),
+          //   horizontalTitleGap: 0,
+          //   contentPadding: EdgeInsets.symmetric(horizontal: 16),
+          // ),
           ListTile(
             // title: const Text("Logout",style: TextStyle(fontSize: 20),).onTap(() {Get.off(()=>const HomeScreen());}),
             title: const Text(

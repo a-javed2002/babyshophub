@@ -16,14 +16,14 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-class MyProfile extends StatefulWidget {
-  const MyProfile({super.key});
+class MyProfileAdmin extends StatefulWidget {
+  const MyProfileAdmin({super.key});
 
   @override
-  State<MyProfile> createState() => _MyProfileState();
+  State<MyProfileAdmin> createState() => _MyProfileAdminState();
 }
 
-class _MyProfileState extends State<MyProfile> {
+class _MyProfileAdminState extends State<MyProfileAdmin> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final CartController _cartController = CartController();
@@ -166,7 +166,6 @@ class _MyProfileState extends State<MyProfile> {
               flex: 1,
               child: Column(
                 children: [
-                  SizedBox(height: 20,),
                   Center(
                     child: Padding(
                       padding: EdgeInsets.only(
@@ -189,7 +188,7 @@ class _MyProfileState extends State<MyProfile> {
                       child: Text(
                         "$email",
                         style: TextStyle(
-                            color: Colors.white, fontSize: screenWidth * 0.05),
+                            color: Colors.grey, fontSize: screenWidth * 0.03),
                       ),
                     ),
                   ),
@@ -305,179 +304,6 @@ class _MyProfileState extends State<MyProfile> {
                       },
                       child: Icon(Icons.settings,
                           color: textColor, size: screenWidth * 0.06)),
-                ],
-              ),
-            ),
-            const Divider(),
-            Expanded(
-              flex: 1,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MyOrdersScreen(),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "${orders.length}",
-                          style: TextStyle(
-                              color: Colors.purple,
-                              fontSize: screenWidth * 0.04),
-                        ),
-                        SizedBox(height: 10,),
-                        Text(
-                          "Orders",
-                          style: TextStyle(
-                              color: Colors.white, fontSize: screenWidth * 0.03),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => WishlistScreen(),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "${wishlist.length}",
-                          style: TextStyle(
-                              color: Colors.purple,
-                              fontSize: screenWidth * 0.04),
-                        ),
-                        SizedBox(height: 10,),
-                        Text(
-                          "Wishlist",
-                          style: TextStyle(
-                              color: Colors.white, fontSize: screenWidth * 0.05,),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CartScreen(),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "${cart.length}",
-                          style: TextStyle(
-                              color: Colors.purple,
-                              fontSize: screenWidth * 0.04),
-                        ),
-                        SizedBox(height: 10,),
-                        Text(
-                          "Cart",
-                          style: TextStyle(
-                              color: Colors.white, fontSize: screenWidth * 0.05),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            // Expanded(
-            //   flex: 1,
-            //   child: Center(
-            //     child: Text(
-            //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
-            //       textAlign: TextAlign.center,
-            //       style: TextStyle(fontSize: screenWidth * 0.04),
-            //     ),
-            //   ),
-            // ),
-            // const Divider(),
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  address.length > 0
-                      ? Row(
-                          children: [
-                            Text("Addresses Are:"),
-                            SizedBox(width: 8.0),
-                            Expanded(
-                              child: Container(
-                                height: 50,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: address.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(horizontal: 8.0),
-                                      child: Text(
-                                        address[index],
-                                        style: TextStyle(fontSize: 16.0),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Center(
-                          child: Text("No Address"),
-                        ),
-                  contact.length > 0
-                      ? Row(
-                          children: [
-                            Text("Contact Are:"),
-                            SizedBox(width: 8.0),
-                            Expanded(
-                              child: Container(
-                                height: 50,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: contact.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(horizontal: 8.0),
-                                      child: Text(
-                                        contact[index],
-                                        style: TextStyle(fontSize: 16.0),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Center(
-                          child: Text("No Contact"),
-                        ),
                 ],
               ),
             ),

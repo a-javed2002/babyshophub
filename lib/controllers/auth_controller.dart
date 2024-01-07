@@ -45,7 +45,7 @@ class AuthController {
   //   }
   // }
 
-    Future<UserCredential?> handleGoogleSignIn() async {
+  Future<UserCredential?> handleGoogleSignIn() async {
     try {
       final GoogleSignInAccount? googleSignInAccount =
           await googleSignIn.signIn();
@@ -66,18 +66,20 @@ class AuthController {
           await _auth.signInWithCredential(credential);
 
       // Check if the user with the same email already exists in Firebase Authentication
-      final existingUser = await _auth.fetchSignInMethodsForEmail(userCredential.user!.email!);
+      final existingUser =
+          await _auth.fetchSignInMethodsForEmail(userCredential.user!.email!);
 
       if (existingUser.isEmpty) {
         // If the user doesn't exist, sign them up
         await _auth.createUserWithEmailAndPassword(
           email: userCredential.user!.email!,
-          password: 'a_random_password', // You can generate a random password or use any desired method
+          password:
+              'a_random_password', // You can generate a random password or use any desired method
         );
       }
 
       // Store user information in Firestore
-      await _storeUserData(userCredential.user!);
+      await _storeUserData(userCredential.user!,'google');
 
       return userCredential;
     } catch (error) {
@@ -86,8 +88,7 @@ class AuthController {
     }
   }
 
-
-  Future<void> _storeUserData(User user) async {
+  Future<void> _storeUserData(User user, String provider) async {
     // Store user information in Firestore
     await _firestore.collection('users').doc(user.uid).set({
       'image': user.photoURL,
@@ -95,6 +96,7 @@ class AuthController {
       'cnic': '',
       'email': user.email,
       'role': 'user',
+      'provider': provider,
       'imageUrl': user.photoURL.toString().isNotEmpty ? user.photoURL : '',
       'wishlist': [],
       'orders': [],
@@ -102,38 +104,38 @@ class AuthController {
     });
   }
 
-Future<User?> signInWithFacebook() async {
-  try {
-    // Perform Facebook Sign-In
-    final LoginResult loginResult = await FacebookAuth.instance.login();
+// Future<User?> signInWithFacebook() async {
+//   try {
+//     // Perform Facebook Sign-In
+//     final LoginResult loginResult = await FacebookAuth.instance.login();
 
-    if (loginResult.status != LoginStatus.success) {
-      return null; // Facebook Sign-In failed
-    }
+//     if (loginResult.status != LoginStatus.success) {
+//       return null; // Facebook Sign-In failed
+//     }
 
-    // Create a Facebook credential
-    final AuthCredential credential = FacebookAuthProvider.credential(
-      loginResult.accessToken!.token,
-    );
+//     // Create a Facebook credential
+//     final AuthCredential credential = FacebookAuthProvider.credential(
+//       loginResult.accessToken!.token,
+//     );
 
-    // Sign in with Facebook using Firebase Authentication
-    UserCredential authResult = await FirebaseAuth.instance.signInWithCredential(credential);
-    User? user = authResult.user;
+//     // Sign in with Facebook using Firebase Authentication
+//     UserCredential authResult = await FirebaseAuth.instance.signInWithCredential(credential);
+//     User? user = authResult.user;
 
-    // Check if the user with the same email already exists in Firebase Authentication
-    final existingUser = await FirebaseAuth.instance.fetchSignInMethodsForEmail(user!.email!);
+//     // Check if the user with the same email already exists in Firebase Authentication
+//     final existingUser = await FirebaseAuth.instance.fetchSignInMethodsForEmail(user!.email!);
 
-    if (existingUser.isEmpty) {
-      // If the user doesn't exist, store user information in Firestore
-      await _storeUserData(user);
-    }
+//     if (existingUser.isEmpty) {
+//       // If the user doesn't exist, store user information in Firestore
+//       await _storeUserData(user);
+//     }
 
-    return user;
-  } catch (e) {
-    print("Facebook Sign In Error: $e");
-    return null;
-  }
-}
+//     return user;
+//   } catch (e) {
+//     print("Facebook Sign In Error: $e");
+//     return null;
+//   }
+// }
 
   String get name {
     return _auth.currentUser?.displayName ?? '';
@@ -165,13 +167,43 @@ Future<User?> signInWithFacebook() async {
   //   }
   // }
 
+  Future<UserCredential> signInWithFacebook() async {
+    try {
+      final LoginResult loginResult = await FacebookAuth.instance.login();
+
+      if (loginResult.status == LoginStatus.success) {
+        final AccessToken accessToken = loginResult.accessToken!;
+        final OAuthCredential credential =
+            FacebookAuthProvider.credential(accessToken.token);
+        return await FirebaseAuth.instance.signInWithCredential(credential);
+      } else {
+        throw FirebaseAuthException(
+          code: 'Facebook Login Failed',
+          message: 'The Facebook login was not successful.',
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      // Handle Firebase authentication exceptions
+      print('Firebase Auth Exception: ${e.message}');
+      throw e; // rethrow the exception
+    } catch (e) {
+      // Handle other exceptions
+      print('Other Exception: $e');
+      throw e; // rethrow the exception
+    }
+  }
+
   Future<void> logout(BuildContext context) async {
     try {
       // Clear user data from SharedPreferences
       await _clearUserDataFromSharedPreferences();
 
       // Sign out from Firebase Authentication
-      await googleSignIn.signOut();
+      try {
+        await googleSignIn.signOut();
+      } catch (e) {
+        print(e);
+      }
       await _auth.signOut();
       // await FacebookAuth.instance.logOut();
       // No specific sign-out method for Twitter
@@ -199,29 +231,27 @@ Future<User?> signInWithFacebook() async {
   }
 
   Future<UserCredential?> signInWithGithub() async {
-  try {
-    // Create a GithubAuthProvider
-    GithubAuthProvider githubAuthProvider = GithubAuthProvider();
+    try {
+      // Create a GithubAuthProvider
+      GithubAuthProvider githubAuthProvider = GithubAuthProvider();
 
-    // Sign in with Github using Firebase Authentication
-    UserCredential userCredential =
-        await FirebaseAuth.instance.signInWithProvider(githubAuthProvider);
+      // Sign in with Github using Firebase Authentication
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithProvider(githubAuthProvider);
 
-    // Check if the user with the same email already exists in Firebase Authentication
-    final existingUser = await FirebaseAuth.instance
-        .fetchSignInMethodsForEmail(userCredential.user!.email!);
+      // Check if the user with the same email already exists in Firebase Authentication
+      final existingUser = await FirebaseAuth.instance
+          .fetchSignInMethodsForEmail(userCredential.user!.email!);
 
-    if (existingUser.isEmpty) {
-      // If the user doesn't exist, store user information in Firestore
-      await _storeUserData(userCredential.user!);
+      if (existingUser.isEmpty) {
+        // If the user doesn't exist, store user information in Firestore
+        await _storeUserData(userCredential.user!,'github');
+      }
+
+      return userCredential;
+    } catch (error) {
+      print("Error signing in with GitHub: $error");
+      return null;
     }
-
-    return userCredential;
-  } catch (error) {
-    print("Error signing in with GitHub: $error");
-    return null;
   }
 }
-}
-
-

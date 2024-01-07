@@ -405,12 +405,12 @@ class _LoginPageState extends State<LoginPage> {
                                           image:
                                               'assets/icons/facebook_logo.png', // Replace with your Facebook logo image path
                                           onPressed: () async {
-                                            User? userCredential =
+                                            UserCredential? userCredential =
                                                 await _authController
                                                     .signInWithFacebook();
                                             if (userCredential != null) {
                                               print(
-                                                  "Signed in: ${userCredential.displayName}");
+                                                  "Signed in: ${userCredential}");
                                               // Navigate to the next screen or perform other actions
                                             } else {
                                               print(

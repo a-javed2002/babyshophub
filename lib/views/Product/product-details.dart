@@ -261,6 +261,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                       ],
                     ),
                   ),
+                  SizedBox(height: 15,),
                   buildReviewSection(productId: widget.productId),
                 ],
               ),
@@ -344,6 +345,12 @@ class _ProductDetailsState extends State<ProductDetails> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      // Update the chatStatus field in the chat document
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .set({'chatStatus': 1}, SetOptions(merge: true));
+
       // Clear any necessary controllers or states
       // _messageController.clear();
       // setState(() {
@@ -393,7 +400,7 @@ class _ProductDetailsState extends State<ProductDetails> {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return Container();
             }
 
             final reviews = snapshot.data!.docs;
@@ -503,7 +510,7 @@ class _ProductDetailsState extends State<ProductDetails> {
 
         // Check if the user has bought the product and if they have submitted more than 2 reviews
         bool hasBoughtProduct = await hasUserBoughtProduct(userId, productId);
-        int userReviewCount = await getUserReviewCount(userId,productId);
+        int userReviewCount = await getUserReviewCount(userId, productId);
 
         if (hasBoughtProduct && userReviewCount < 2) {
           // Prepare the review data

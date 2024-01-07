@@ -3,107 +3,164 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ChatMessage {
-  final String sender;
-  final String message;
-  final DateTime timestamp;
-  final String userImage; // Added userImage field
-
-  ChatMessage({
-    required this.sender,
-    required this.message,
-    required this.timestamp,
-    required this.userImage,
-  });
-}
-
 class ChatListScreen extends StatefulWidget {
   @override
   _ChatListScreenState createState() => _ChatListScreenState();
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<Map<String, dynamic>> _chats = [];
+  late Map<String, dynamic>? userData;
   late String currentUserUid;
-  late Stream<List<ChatMessage>> chatMessages;
+  late String secondUserUid;
+  int count = 0;
 
   @override
   void initState() {
     super.initState();
+    _fetchChats();
     final User? user = FirebaseAuth.instance.currentUser;
     currentUserUid = user!.uid;
-    chatMessages = getChatMessagesStream();
   }
 
-  Stream<List<ChatMessage>> getChatMessagesStream() {
-    print(currentUserUid);
-    return FirebaseFirestore.instance
-        .collection('chats')
-        .where('participants', arrayContains: currentUserUid)
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .asyncMap((snapshot) async {
-          List<ChatMessage> messages = [];
+  Future<void> _fetchChats() async {
+    try {
+      QuerySnapshot chatsSnapshot = await _firestore.collection('chats').get();
 
-          for (QueryDocumentSnapshot<Map<String, dynamic>> doc in snapshot.docs) {
-            DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore
-                .instance
-                .collection('users')
-                .doc(doc['sender'])
-                .get();
+      List<Map<String, dynamic>> chatsData = [];
 
-            messages.add(ChatMessage(
-              sender: doc['sender'],
-              message: doc['message'],
-              timestamp: doc['timestamp'].toDate(),
-              userImage: userDoc['userImage'],
-            ));
+      for (QueryDocumentSnapshot chatDoc in chatsSnapshot.docs) {
+        String chatId = chatDoc.id;
+        dynamic chatStatus = chatDoc.data() ?? ['chatStatus'];
+
+        QuerySnapshot messagesSnapshot = await _firestore
+            .collection('chats')
+            .doc(chatId)
+            .collection('messages')
+            .get();
+
+        List<Map<String, dynamic>> messagesData =
+            messagesSnapshot.docs.map((messageDoc) {
+          return {
+            'messageId': messageDoc.id,
+            'messageText': messageDoc.data() ?? ['text'],
+            'timestamp': messageDoc.data() ?? ['timestamp'],
+          };
+        }).toList();
+
+        String first = chatDoc.id.split("_")[0];
+        String second = chatDoc.id.split("_")[1];
+        count = 0;
+
+        if (first != currentUserUid) {
+          secondUserUid = first;
+          userData = await getUserById(first);
+        } else {
+          secondUserUid = second;
+          userData = await getUserById(second);
+        }
+
+        // Sort messages by timestamp to get the latest message first
+        // messagesData.sort(
+        //     (a, b) => (b['timestamp'] as Timestamp).compareTo(a['timestamp']));
+
+        for (var v = 0; v < messagesData.length; v++) {
+          // print("Before ${messagesData[v]['messageText']['status']}");
+          if (messagesData[v]['messageText']['status'].toString() == '1') {
+          // print("After ${messagesData[v]['messageText']['status']}");
+            count++;
           }
+        }
+        // print("--------------------------------------------------------");
 
-          return messages;
+        chatsData.add({
+          'counted': count,
+          'chatId': chatId,
+          'userData': userData,
+          'chatStatus': chatStatus,
+          'latestMessage': messagesData.isNotEmpty ? messagesData[0] : null,
         });
+      }
+
+      setState(() {
+        _chats = chatsData;
+      });
+    } catch (error) {
+      print('Error fetching chats: $error');
+      // Handle error as needed
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserById(String userId) async {
+    try {
+      DocumentSnapshot userSnapshot =
+          await _firestore.collection('users').doc(userId).get();
+
+      if (userSnapshot.exists) {
+        // Return user data if the document exists
+        return userSnapshot.data() as Map<String, dynamic>?;
+      } else {
+        // Return null if the document does not exist
+        return null;
+      }
+    } catch (error) {
+      print('Error fetching user data: $error');
+      // Handle error as needed
+      throw error;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat List'),
+        title: Text('Chats'),
       ),
-      body: StreamBuilder<List<ChatMessage>>(
-        stream: chatMessages,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No chat messages available.'));
-          } else {
-            List<ChatMessage> messages = snapshot.data!;
-            return ListView.builder(
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    ChatScreen(
-                      currentUserUid: currentUserUid,
-                      recipientUid: messages[index].sender,
-                    );
-                  },
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: NetworkImage(messages[index].userImage),
-                    ),
-                    title: Text(messages[index].sender),
-                    subtitle: Text(messages[index].message),
-                    trailing: Text('${messages[index].timestamp}'),
-                  ),
-                );
-              },
+      body: _buildChatList(),
+    );
+  }
+
+  Widget _buildChatList() {
+    return ListView.builder(
+      itemCount: _chats.length,
+      itemBuilder: (context, index) {
+        final chat = _chats[index];
+        final latestMessage = chat['latestMessage'];
+        final user = chat['userData'];
+
+        return GestureDetector(
+          onTap: () {
+            ChatScreen(
+              currentUserUid: currentUserUid,
+              recipientUid: secondUserUid,
             );
-          }
-        },
-      ),
+          },
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(user['imageUrl']),
+            ),
+            title: Text(user['username']),
+            subtitle: Text(
+                "${latestMessage['messageText']['text'].toString().substring(0, 22)}...."),
+            trailing: Text("${chat['counted']}"),
+          ),
+        );
+
+        return ListTile(
+          title: Text('Chat ID: ${chat['chatId'] ?? 'N/A'}'),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Chat Status: ${chat['chatStatus'] ?? 'N/A'}'),
+              Text("user data${user}"),
+              if (latestMessage != null)
+                Text(
+                    'Latest Message: ${latestMessage['messageText']['text'] ?? 'N/A'}'),
+            ],
+          ),
+        );
+      },
     );
   }
 }

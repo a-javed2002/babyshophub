@@ -1,4 +1,6 @@
 import 'package:babyshophub/consts/colors.dart';
+import 'package:babyshophub/views/Product/cart.dart';
+import 'package:babyshophub/views/Product/wishlist.dart';
 import 'package:babyshophub/views/common/appBar.dart';
 import 'package:babyshophub/views/common/drawer.dart';
 import 'package:flutter/material.dart';
@@ -25,13 +27,21 @@ class _UserCustomScaffoldState extends State<UserCustomScaffold> {
       appBar: CustomAppBar(
         title: widget.appBarTitle,
         backgroundColor: mainColor,
-        icons: [Icons.search, Icons.more_vert],
+        icons: [Icons.shopping_cart, Icons.favorite],
         onPressed: [
           () {
-            print("Search Clicked");
+            print("CartScreen Clicked");
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CartScreen()),
+            );
           },
           () {
-            print("Vertical More Clicked");
+            print("WishlistScreen Clicked");
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => WishlistScreen()),
+            );
           },
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:babyshophub/consts/firestore_consts.dart';
 import 'package:babyshophub/views/Product/Category-All.dart';
 import 'package:babyshophub/views/Product/cart.dart';
 import 'package:babyshophub/views/Product/category.dart';
@@ -33,6 +34,53 @@ Widget LandingPage({required context}) {
   ];
 
   int myImageCurrentIndex = 0;
+
+  Future<List<String>> fetchAllProductIds() async {
+    QuerySnapshot orderSnapshot =
+        await FirebaseFirestore.instance.collection('orders').get();
+
+    Set<String> uniqueProductIds = Set<String>();
+
+    for (QueryDocumentSnapshot order in orderSnapshot.docs) {
+      List<dynamic> orderItems = order['orderItems'];
+      for (var item in orderItems) {
+        // Assuming each order item has a 'productId' field
+        String productId = item['productId'];
+        if (productId != null && productId.isNotEmpty) {
+          print(productId);
+          uniqueProductIds.add(productId);
+        }
+      }
+    }
+
+    return uniqueProductIds.toList();
+  }
+
+  Future<String> getCategoryName(String categoryId) async {
+    final categorySnapshot = await FirebaseFirestore.instance
+        .collection(categoriesCollection)
+        .doc(categoryId)
+        .get();
+
+    return categorySnapshot['name'];
+  }
+
+  Future<Map<String, dynamic>> fetchProductDetails(String productId) async {
+    print("Product id is $productId");
+    final productSnapshot = await FirebaseFirestore.instance
+        .collection(productsCollection)
+        .doc(productId)
+        .get();
+
+    final categoryId = productSnapshot['category_id_fk'];
+    final categoryName = await getCategoryName(categoryId);
+
+    return {
+      'productDetails': productSnapshot.data(),
+      'categoryName': categoryName,
+    };
+  }
+
   return SingleChildScrollView(
     child: Column(
       children: <Widget>[
@@ -99,7 +147,7 @@ Widget LandingPage({required context}) {
                             FadeInUp(
                                 duration: Duration(milliseconds: 1500),
                                 child: Text(
-                                  "Our New Products",
+                                  "Our Products",
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 30,
@@ -195,14 +243,18 @@ Widget LandingPage({required context}) {
                   enlargeCenterPage: true,
                   aspectRatio: 2.0,
                   onPageChanged: (index, reason) {
-                    // setState(() {
                     myImageCurrentIndex = index;
-                    // });
                   },
                 ),
                 itemCount: myImageItems.length,
                 itemBuilder: (context, index, realIndex) {
-                  return myImageItems[index];
+                  return SizedBox(
+                    width: MediaQuery.of(context)
+                        .size
+                        .width, // Set your desired width
+                    height: 200, // Set your desired height
+                    child: myImageItems[index], // Use the Image widget here
+                  );
                 },
               ),
             ),
@@ -228,7 +280,123 @@ Widget LandingPage({required context}) {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text(
-                    "Best Selling",
+                    "Top Selling",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // Text("All")
+                ],
+              ),
+              FutureBuilder<List<String>>(
+                future: fetchAllProductIds(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container();
+                  }
+
+                  if (snapshot.hasError) {
+                    print('Error: ${snapshot.error}');
+                    return Container();
+                  }
+
+                  List<String> productIds = snapshot.data!;
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: productIds.map((productId) {
+                        return FutureBuilder<Map<String, dynamic>>(
+                          future: fetchProductDetails(productId),
+                          builder: (context, productSnapshot) {
+                            if (productSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Container();
+                            }
+                    
+                            if (productSnapshot.hasError) {
+                              return Text('Error: ${productSnapshot.error}');
+                            }
+                    
+                            final productDetails =
+                                productSnapshot.data!['productDetails'];
+                            final categoryName =
+                                productSnapshot.data!['categoryName'];
+                    
+                            return  Container(
+                              height: 320,
+                                child:
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ProductDetails(
+                                            productId: productId,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              Color.fromARGB(255, 192, 109, 224),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Image.network(
+                                                productDetails['imageUrls'][0],height: 250,),
+                                            Text(
+                                              productDetails['name'],
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Price: \$${productDetails['price']}',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
+              // Add any additional widgets here if needed
+            ],
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    "New Arrivals",
                     style: TextStyle(
                         color: Colors.black,
                         fontSize: 18,
@@ -240,13 +408,10 @@ Widget LandingPage({required context}) {
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('products')
-                    .orderBy('timestamp',
-                        descending: true) // Add orderBy for timestamp
-                    .limit(8) // Limit the results to 8
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return Container();
                   }
 
                   if (snapshot.hasError) {
@@ -255,70 +420,215 @@ Widget LandingPage({required context}) {
 
                   List<QueryDocumentSnapshot> products = snapshot.data!.docs;
 
-                  return Column(
-                      children: products.map((product) {
-                    return Card(
-                      elevation: 2.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    ProductDetails(productId: product.id)),
-                          );
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(10)),
-                              child: Image.network(
-                                product['imageUrls'][
-                                    0], // Replace with the field in your Firestore document for image URL
-                                height: 120,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    product[
-                                        'name'], // Replace with the field in your Firestore document for product name
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '\$${product['price'].toStringAsFixed(2)}', // Replace with the field in your Firestore document for product price
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  if (products.isEmpty) {
+                    return Center(
+                      child: Text('No products found.'),
                     );
-                  }).toList());
+                  }
+
+                  // Set the limit for dynamic data
+                  int dataLimit = 6;
+
+                  // Only take the top products up to the data limit
+                  List<QueryDocumentSnapshot> topProducts =
+                      products.take(dataLimit).toList();
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      height: 320,
+                      child: Row(
+                        children: [
+                          ...topProducts.map((product) {
+                            return GestureDetector(
+                              onTap: () {
+                                // Navigate to the product detail page with product details
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductDetails(
+                                      productId: product.id,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Color.fromARGB(255, 192, 109, 224),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Image.network(product['imageUrls'][0]),
+                                      Text(
+                                        product['name'],
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Price: \$${product['price']}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                          // Custom tag when length reaches the data limit
+                          if (products.length > dataLimit)
+                            Container(
+                              height: 320,
+                              child: GestureDetector(
+                                onTap: () {
+                                  // Navigate to the page showing all products
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AllProductScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 48.0),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      // color: Color.fromARGB(255, 192, 109, 224),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        'See All Products -->',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
                 },
               ),
             ],
           ),
         ),
+        // Container(
+        //   padding: EdgeInsets.all(20),
+        //   child: Column(
+        //     children: <Widget>[
+        //       Row(
+        //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //         children: <Widget>[
+        //           Text(
+        //             "Best Selling",
+        //             style: TextStyle(
+        //                 color: Colors.black,
+        //                 fontSize: 18,
+        //                 fontWeight: FontWeight.bold),
+        //           ),
+        //           // Text("All")
+        //         ],
+        //       ),
+        //       StreamBuilder<QuerySnapshot>(
+        //         stream: FirebaseFirestore.instance
+        //             .collection('products')
+        //             .orderBy('timestamp',
+        //                 descending: true) // Add orderBy for timestamp
+        //             .limit(8) // Limit the results to 8
+        //             .snapshots(),
+        //         builder: (context, snapshot) {
+        //           if (snapshot.connectionState == ConnectionState.waiting) {
+        //             return Container();
+        //           }
+
+        //           if (snapshot.hasError) {
+        //             return Text('Error: ${snapshot.error}');
+        //           }
+
+        //           List<QueryDocumentSnapshot> products = snapshot.data!.docs;
+
+        //           return Column(
+        //               children: products.map((product) {
+        //             return Card(
+        //               elevation: 2.0,
+        //               shape: RoundedRectangleBorder(
+        //                 borderRadius: BorderRadius.circular(10),
+        //               ),
+        //               child: InkWell(
+        //                 onTap: () {
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                         builder: (context) =>
+        //                             ProductDetails(productId: product.id)),
+        //                   );
+        //                 },
+        //                 child: Column(
+        //                   crossAxisAlignment: CrossAxisAlignment.stretch,
+        //                   children: [
+        //                     ClipRRect(
+        //                       borderRadius: BorderRadius.vertical(
+        //                           top: Radius.circular(10)),
+        //                       child: Image.network(
+        //                         product['imageUrls'][
+        //                             0], // Replace with the field in your Firestore document for image URL
+        //                         height: 120,
+        //                         fit: BoxFit.cover,
+        //                       ),
+        //                     ),
+        //                     Padding(
+        //                       padding: const EdgeInsets.all(8.0),
+        //                       child: Column(
+        //                         crossAxisAlignment: CrossAxisAlignment.start,
+        //                         children: [
+        //                           Text(
+        //                             product[
+        //                                 'name'], // Replace with the field in your Firestore document for product name
+        //                             style: TextStyle(
+        //                               fontSize: 16,
+        //                               fontWeight: FontWeight.bold,
+        //                               color: Colors.black
+        //                             ),
+        //                           ),
+        //                           SizedBox(height: 4),
+        //                           Text(
+        //                             '\$${product['price'].toStringAsFixed(2)}', // Replace with the field in your Firestore document for product price
+        //                             style: TextStyle(
+        //                               fontSize: 14,
+        //                               color: Colors.green,
+        //                             ),
+        //                           ),
+        //                         ],
+        //                       ),
+        //                     ),
+        //                   ],
+        //                 ),
+        //               ),
+        //             );
+        //           }).toList());
+        //         },
+        //       ),
+        //     ],
+        //   ),
+        // ),
       ],
     ),
   );
@@ -331,7 +641,7 @@ class ProductCards extends StatelessWidget {
       stream: FirebaseFirestore.instance.collection('products').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return Container();
         }
 
         if (snapshot.hasError) {
@@ -428,7 +738,7 @@ class CatTags extends StatelessWidget {
       stream: FirebaseFirestore.instance.collection('categories').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return Container();
         }
 
         if (snapshot.hasError) {
@@ -469,12 +779,12 @@ class CatTags extends StatelessWidget {
                     );
                   },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     child: Container(
                       padding:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: Color.fromARGB(255, 192, 109, 224),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
@@ -504,7 +814,7 @@ class CatTags extends StatelessWidget {
                       padding:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: Color.fromARGB(255, 192, 109, 224),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(

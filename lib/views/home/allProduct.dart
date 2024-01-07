@@ -75,6 +75,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Product List'),
+        automaticallyImplyLeading: false
       ),
       body: Column(
         children: [
@@ -137,7 +138,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
-                    child: CircularProgressIndicator(),
+                    child: Container(),
                   );
                 }
 

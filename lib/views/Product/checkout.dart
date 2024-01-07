@@ -126,6 +126,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Column(
               children: [
                 TextField(
+                  style: TextStyle(color: Colors.black),
                   controller: _nameController,
                   decoration: InputDecoration(
                     labelText: 'Name',
@@ -143,6 +144,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     showAddressPopup();
                   },
                   child: TextField(
+                    style: TextStyle(color: Colors.black),
                     controller: _addressController,
                     decoration: InputDecoration(
                       labelText: 'Address',
@@ -164,6 +166,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     showContactPopup();
                   },
                   child: TextField(
+                    style: TextStyle(color: Colors.black),
                     controller: _contactController,
                     decoration: InputDecoration(
                       labelText: 'Contact',
@@ -262,6 +265,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return AlertDialog(
           title: Text('Add Address'),
           content: TextField(
+            style: TextStyle(color: Colors.black),
             controller: _addressController,
             decoration: InputDecoration(labelText: 'New Address'),
           ),
@@ -370,6 +374,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return AlertDialog(
           title: Text('Add Contact'),
           content: TextField(
+            style: TextStyle(color: Colors.black),
             controller: _contactController,
             decoration: InputDecoration(labelText: 'New Contact'),
           ),
@@ -439,7 +444,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _contactController.clear();
         _cartController.clearCart();
 
-        Timer(Duration(seconds: 2), () {
+        Timer(Duration(microseconds: 500), () {
           print("checking onBoarding Status");
           Navigator.pushReplacement(
             context,

@@ -60,6 +60,7 @@ dependencies:
   emoji_picker_flutter: ^1.6.3
   flutter_rating_bar: ^4.0.1
   flutter_launcher_icons: ^0.13.1
+  openvpn_flutter: ^1.2.2
 
 dev_dependencies:
   flutter_test:

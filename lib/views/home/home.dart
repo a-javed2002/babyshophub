@@ -1,8 +1,10 @@
 import 'package:babyshophub/consts/consts.dart';
+import 'package:babyshophub/views/Chats/chats-details.dart';
 import 'package:babyshophub/views/Chats/chats.dart';
 import 'package:babyshophub/views/Profile/profile.dart';
 import 'package:babyshophub/views/home/allProduct.dart';
 import 'package:babyshophub/views/home/landingPage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -13,7 +15,14 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   PageController _pageController = PageController();
-
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late User? user;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    user = _auth.currentUser;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +36,15 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         children: [
           Container(
-            child: LandingPage(context:context),
+            child: LandingPage(context: context),
           ),
           Container(
             child: AllProductScreen(),
           ),
           Container(
-            child: ChatListScreen(),
+            child: ChatScreen(
+                currentUserUid: user!.uid,
+                recipientUid: "W61jBbxY3KY3JxL4wMdMeMIH9qr1"),
           ),
           Container(
             child: MyProfile(),

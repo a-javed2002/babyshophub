@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:babyshophub/consts/consts.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -114,14 +115,50 @@ class _ChatScreenState extends State<ChatScreen> {
                             return Text('Error: ${userSnapshot.error}');
                           } else {
                             var user = userSnapshot.data!.data()!;
+                            bool isCurrentUser =
+                                currentUser!.uid == message['sender'];
+
                             return ListTile(
                               title: Text(user['username']),
-                              subtitle: message['imageUrl'] != null
-                                  ? Image.network(message['imageUrl'])
-                                  : Text(message['text']),
+                              subtitle: isCurrentUser
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors
+                                            .blue, // Background color for current user's messages
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                      ),
+                                      padding: EdgeInsets.all(8.0),
+                                      child: message['imageUrl'] != null
+                                          ? Image.network(message['imageUrl'])
+                                          : Text(
+                                              message['text'],
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                    )
+                                  : Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors
+                                            .green, // Background color for other user's messages
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                      ),
+                                      padding: EdgeInsets.all(8.0),
+                                      child: message['imageUrl'] != null
+                                          ? Image.network(message['imageUrl'])
+                                          : Text(
+                                              message['text'],
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                    ),
                               leading: CircleAvatar(
-                                backgroundImage:
-                                    NetworkImage(user['imageUrl']==""?"assets/images/profile.jpg":user['imageUrl']),
+                                backgroundImage: NetworkImage(
+                                  user['imageUrl'] == ""
+                                      ? "assets/images/profile.jpg"
+                                      : user['imageUrl'],
+                                ),
                               ),
                             );
                           }
@@ -209,14 +246,14 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    // final pickedFile = await ImagePicker().getImage(source: source);
+    final pickedFile = await FilePicker.platform.pickFiles();
 
-    // if (pickedFile != null) {
-    //   File imageFile = File(pickedFile.path);
-    //   String imageUrl = await _uploadImageToStorage(imageFile);
+    if (pickedFile != null) {
+      File imageFile = File(pickedFile.files.single.path!);
+      String imageUrl = await _uploadImageToStorage(imageFile);
 
-    //   _sendMessage(imageUrl: imageUrl);
-    // }
+      _sendMessage(imageUrl: imageUrl);
+    }
   }
 
   Future<String> _uploadImageToStorage(File imageFile) async {

@@ -273,7 +273,7 @@ class _OrdersScreenState extends State<OrdersScreen>
 
           if (orderIds.isEmpty) {
             return Center(
-              child: Text('No orders found'),
+              child: Text('No $status orders found'),
             );
           }
 
@@ -317,6 +317,8 @@ class _OrdersScreenState extends State<OrdersScreen>
   Future<List<String>> getOrderIds({String? status}) async {
     try {
       final CollectionReference orders = FirebaseFirestore.instance.collection('orders');
+
+      print(status);
 
       // Fetch orders based on status or fetch all orders
       QuerySnapshot orderSnapshot;

@@ -75,14 +75,14 @@ class _CategoryPageState extends State<CategoryPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: <Widget>[
-                                FadeInUp(
-                                  duration: Duration(milliseconds: 1200),
-                                  child: IconButton(
-                                    icon:
-                                        Icon(Icons.search, color: Colors.white),
-                                    onPressed: () {},
-                                  ),
-                                ),
+                                // FadeInUp(
+                                //   duration: Duration(milliseconds: 1200),
+                                //   child: IconButton(
+                                //     icon:
+                                //         Icon(Icons.search, color: Colors.white),
+                                //     onPressed: () {},
+                                //   ),
+                                // ),
                                 FadeInUp(
                                   duration: Duration(milliseconds: 1200),
                                   child: IconButton(
@@ -144,7 +144,7 @@ class _CategoryPageState extends State<CategoryPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text(
-                          "New Product",
+                          "All Product",
                           style: TextStyle(
                               color: Colors.black,
                               fontSize: 18,
@@ -153,7 +153,7 @@ class _CategoryPageState extends State<CategoryPage> {
                         Row(
                           children: <Widget>[
                             Text(
-                              "View More",
+                              "",
                               style: TextStyle(color: Colors.grey),
                             ),
                             SizedBox(

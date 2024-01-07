@@ -14,7 +14,9 @@ class ShowProduct extends StatelessWidget {
       context: context,
       appBarTitle: "Manage Products",
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection(productsCollection).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection(productsCollection)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();
@@ -35,30 +37,38 @@ class ShowProduct extends StatelessWidget {
             itemBuilder: (context, index) {
               var product = products[index];
               return ListTile(
-                title: Text("${product['name']} === ${product['timestamp']} === ${product['last_update_date']} === ${product['category_id_fk']}"),
-                subtitle: Text("${product['description']} === ${product['price']} === ${product['quantity']} === ${product['status']}"),
+                title: Text("${product['name']}"),
+                subtitle: Text(
+                    "${product['description']} === ${product['price']} === ${product['quantity']} === ${product['status']}"),
                 leading: FutureBuilder<String>(
                   future: _getImageUrl(product['imageUrls'][0]),
                   builder: (context, imageUrlSnapshot) {
-                    if (imageUrlSnapshot.connectionState == ConnectionState.waiting) {
+                    if (imageUrlSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return CircularProgressIndicator();
                     }
 
                     if (imageUrlSnapshot.hasError) {
-                      print('Error getting image URL: ${imageUrlSnapshot.error}');
+                      print(
+                          'Error getting image URL: ${imageUrlSnapshot.error}');
                       return Text('Error loading image');
                     }
 
                     final imageUrl = imageUrlSnapshot.data ?? '';
-                    return CircleAvatar(
-                      backgroundImage: Image.network(
-                        imageUrl,
-                        errorBuilder: (context, error, stackTrace) {
-                          print('Error loading image: $error');
-                          return Text('Error loading image');
-                        },
-                      ).image,
-                      radius: 25,
+                    return GestureDetector(
+                      onTap: () {
+                        _showProductDetailsPopup(context, product);
+                      },
+                      child: CircleAvatar(
+                        backgroundImage: Image.network(
+                          imageUrl,
+                          errorBuilder: (context, error, stackTrace) {
+                            print('Error loading image: $error');
+                            return Text('Error loading image');
+                          },
+                        ).image,
+                        radius: 25,
+                      ),
                     );
                   },
                 ),
@@ -68,18 +78,12 @@ class ShowProduct extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //       builder: (context) => EditProduct(productId: product.id,)),
-                        // );
                         _editProduct(context, product);
                       },
                     ),
                     IconButton(
                       icon: Icon(Icons.delete),
                       onPressed: () {
-                        // Delete the category and associated images
                         _deleteCategory(context, product);
                       },
                     ),
@@ -92,8 +96,44 @@ class ShowProduct extends StatelessWidget {
       ),
     );
   }
+  void _showProductDetailsPopup(BuildContext context, QueryDocumentSnapshot product) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Product Details'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.network(product['imageUrls'][0]), // Display the image in the popup
+            SizedBox(height: 10),
+            Text('Name: ${product['name']}'),
+            Text('Timestamp: ${product['timestamp']}'),
+            Text('Last Update Date: ${product['last_update_date']}'),
+            Text('Category ID: ${product['category_id_fk']}'),
+            SizedBox(height: 10),
+            Text('Description: ${product['description']}'),
+            Text('Price: ${product['price']}'),
+            Text('Quantity: ${product['quantity']}'),
+            Text('Status: ${product['status']}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the popup
+            },
+            child: Text('Close'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
-  Future<void> _editProduct(BuildContext context, QueryDocumentSnapshot product) async {
+
+  Future<void> _editProduct(
+      BuildContext context, QueryDocumentSnapshot product) async {
     // Retrieve category data
     String productName = product['name'];
     String productStatus = product['status'];
@@ -133,7 +173,7 @@ class ShowProduct extends StatelessWidget {
           'status': productStatus,
           'last_update_date': FieldValue.serverTimestamp(),
         });
-        
+
         print('Category updated successfully');
       } catch (e) {
         print('Error updating category: $e');
@@ -149,22 +189,27 @@ class ShowProduct extends StatelessWidget {
     } else {
       // If no category image exists, return a random image from assets
       final random = Random();
-      final randomImageIndex = random.nextInt(3) + 1; // Assuming you have three random images in assets
+      final randomImageIndex = random.nextInt(3) +
+          1; // Assuming you have three random images in assets
 
       return 'assets/images/profile.jpg';
     }
   }
 
-  Future<void> _deleteCategory(BuildContext context, QueryDocumentSnapshot category) async {
+  Future<void> _deleteCategory(
+      BuildContext context, QueryDocumentSnapshot category) async {
     bool confirmDelete = await _showDeleteConfirmationDialog(context);
     if (confirmDelete) {
       try {
         // Delete associated images from Firebase Storage
         await _deleteProductImages(category['imageUrls'][0]);
-        
+
         // Delete the category from Firestore
-        await FirebaseFirestore.instance.collection(productsCollection).doc(category.id).delete();
-        
+        await FirebaseFirestore.instance
+            .collection(productsCollection)
+            .doc(category.id)
+            .delete();
+
         print('Product deleted successfully');
       } catch (e) {
         print('Error deleting product: $e');
@@ -210,7 +255,8 @@ class ShowProduct extends StatelessWidget {
 
   Future<void> _deleteImage(String imageUrl) async {
     try {
-      final firebase_storage.Reference storageReference = firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
+      final firebase_storage.Reference storageReference =
+          firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl);
       await storageReference.delete();
       print('Image deleted successfully: $imageUrl');
     } catch (e) {

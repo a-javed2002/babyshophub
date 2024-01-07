@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="facebook_app_id">1415643639366458</string>
+    <string name="fb_login_protocol_scheme">fb1415643639366458</string>
+    <string name="facebook_client_token">6472db57cf5ddf5faabd7108f4c6238b</string>
+    <string name="app_name">"Baby Shop Hub"</string>
+
+</resources>

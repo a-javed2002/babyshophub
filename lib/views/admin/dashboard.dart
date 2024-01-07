@@ -1,6 +1,10 @@
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/controllers/auth_controller.dart';
+import 'package:babyshophub/views/admin/category/show-category.dart';
 import 'package:babyshophub/views/admin/common/doughnut.dart';
+import 'package:babyshophub/views/admin/order/orders.dart';
+import 'package:babyshophub/views/admin/product/show-product.dart';
+import 'package:babyshophub/views/admin/users.dart';
 import 'package:babyshophub/views/common/admin-scaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +27,7 @@ class _MyDashboardState extends State<MyDashboard> {
   Widget build(BuildContext context) {
     return AdminCustomScaffold(
       context: context,
-      appBarTitle: 'Dashboarde',
+      appBarTitle: 'Dashboard',
       body: SafeArea(
         child: Column(
           children: [
@@ -31,10 +35,18 @@ class _MyDashboardState extends State<MyDashboard> {
             FutureBuilder<int>(
               future: fetchTotalProducts(),
               builder: (context, snapshot) {
-                return DashboardTile(
-                  title: 'Total Products',
-                  count: snapshot.data ?? 0,
-                  icon: Icons.shopping_cart,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ShowProduct()),
+                    );
+                  },
+                  child: DashboardTile(
+                    title: 'Total Products',
+                    count: snapshot.data ?? 0,
+                    icon: Icons.shopping_cart,
+                  ),
                 );
               },
             ),
@@ -43,10 +55,18 @@ class _MyDashboardState extends State<MyDashboard> {
             FutureBuilder<int>(
               future: fetchTotalCategories(),
               builder: (context, snapshot) {
-                return DashboardTile(
-                  title: 'Total Categories',
-                  count: snapshot.data ?? 0,
-                  icon: Icons.category,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ShowCategory()),
+                    );
+                  },
+                  child: DashboardTile(
+                    title: 'Total Categories',
+                    count: snapshot.data ?? 0,
+                    icon: Icons.category,
+                  ),
                 );
               },
             ),
@@ -55,10 +75,18 @@ class _MyDashboardState extends State<MyDashboard> {
             FutureBuilder<int>(
               future: fetchTotalUsers(),
               builder: (context, snapshot) {
-                return DashboardTile(
-                  title: 'Total Users',
-                  count: snapshot.data ?? 0,
-                  icon: Icons.people,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyUsers()),
+                    );
+                  },
+                  child: DashboardTile(
+                    title: 'Total Users',
+                    count: snapshot.data ?? 0,
+                    icon: Icons.people,
+                  ),
                 );
               },
             ),
@@ -67,10 +95,18 @@ class _MyDashboardState extends State<MyDashboard> {
             FutureBuilder<int>(
               future: fetchTotalOrders(),
               builder: (context, snapshot) {
-                return DashboardTile(
-                  title: 'Total Orders',
-                  count: snapshot.data ?? 0,
-                  icon: Icons.shopping_basket,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => OrdersScreen()),
+                    );
+                  },
+                  child: DashboardTile(
+                    title: 'Total Orders',
+                    count: snapshot.data ?? 0,
+                    icon: Icons.shopping_basket,
+                  ),
                 );
               },
             ),
@@ -288,55 +324,57 @@ class _MyDashboardState extends State<MyDashboard> {
   }
 
   Future<List<Data>> fetchTopSellingProductsData() async {
-  // Use Firestore query to get orders data
-  QuerySnapshot<Map<String, dynamic>> ordersSnapshot =
-      await FirebaseFirestore.instance.collection('orders').get();
+    // Use Firestore query to get orders data
+    QuerySnapshot<Map<String, dynamic>> ordersSnapshot =
+        await FirebaseFirestore.instance.collection('orders').get();
 
-  // Create a Map to store the sales count for each product
-  Map<String, int> productSalesMap = {};
+    // Create a Map to store the sales count for each product
+    Map<String, int> productSalesMap = {};
 
-  // Process the ordersSnapshot to update the sales count for each product
-  for (QueryDocumentSnapshot<Map<String, dynamic>> orderDoc
-      in ordersSnapshot.docs) {
-    List<dynamic> orderProducts = orderDoc['products'];
-    if (orderProducts != null) {
-      for (dynamic orderProduct in orderProducts) {
-        String productId = orderProduct['productId'];
-        String productName = await getProductName(productId);
+    // Process the ordersSnapshot to update the sales count for each product
+    for (QueryDocumentSnapshot<Map<String, dynamic>> orderDoc
+        in ordersSnapshot.docs) {
+      List<dynamic> orderProducts = orderDoc['products'];
+      if (orderProducts != null) {
+        for (dynamic orderProduct in orderProducts) {
+          String productId = orderProduct['productId'];
+          String productName = await getProductName(productId);
 
-        // Update the sales count for the corresponding product
-        productSalesMap.update(
-          productName,
-          (value) => value + int.parse(orderProduct['quantity'].toString()),
-          ifAbsent: () => int.parse(orderProduct['quantity'].toString()),
-        );
+          // Update the sales count for the corresponding product
+          productSalesMap.update(
+            productName,
+            (value) => value + int.parse(orderProduct['quantity'].toString()),
+            ifAbsent: () => int.parse(orderProduct['quantity'].toString()),
+          );
+        }
       }
     }
+
+    // Convert the productSalesMap to a List<Data>
+    List<Data> result = [];
+    productSalesMap.forEach((productName, salesCount) {
+      result.add(Data(productName, salesCount));
+    });
+
+    // Sort the result list based on sales count in descending order
+    result.sort((a, b) => b.col_2.compareTo(a.col_2));
+
+    // Take only the top 6 products
+    result = result.take(6).toList();
+
+    return result;
   }
 
-  // Convert the productSalesMap to a List<Data>
-  List<Data> result = [];
-  productSalesMap.forEach((productName, salesCount) {
-    result.add(Data(productName, salesCount));
-  });
+  Future<String> getProductName(String productId) async {
+    // Use Firestore query to get product name based on the productId
+    DocumentSnapshot<Map<String, dynamic>> productSnapshot =
+        await FirebaseFirestore.instance
+            .collection('products')
+            .doc(productId)
+            .get();
 
-  // Sort the result list based on sales count in descending order
-  result.sort((a, b) => b.col_2.compareTo(a.col_2));
-
-  // Take only the top 6 products
-  result = result.take(6).toList();
-
-  return result;
-}
-
-Future<String> getProductName(String productId) async {
-  // Use Firestore query to get product name based on the productId
-  DocumentSnapshot<Map<String, dynamic>> productSnapshot =
-      await FirebaseFirestore.instance.collection('products').doc(productId).get();
-
-  return productSnapshot['name'];
-}
-
+    return productSnapshot['name'];
+  }
 }
 
 class DashboardTile extends StatelessWidget {
