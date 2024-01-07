@@ -15,12 +15,16 @@ import 'package:babyshophub/views/common/appBar.dart';
 import 'package:flutter/material.dart';
 
 class AdminCustomScaffold extends StatefulWidget {
+  bool bottom;
+  bool cat;
   final Widget body;
   final String appBarTitle;
   final bool showDrawer;
   final BuildContext context;
 
   AdminCustomScaffold({
+    this.bottom = false,
+    this.cat = false,
     required this.body,
     required this.appBarTitle,
     this.showDrawer = true,
@@ -43,18 +47,45 @@ class _AdminCustomScaffoldState extends State<AdminCustomScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: widget.bottom
+          ? widget.cat
+              ? FloatingActionButton(
+                  onPressed: () {
+                    // Add your edit button functionality here
+                    print('Edit Cat button pressed!');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddCategory()),
+                    );
+                  },
+                  child: Icon(Icons.edit),
+                )
+              : FloatingActionButton(
+                  onPressed: () {
+                    // Add your edit button functionality here
+                    print('Edit Product button pressed!');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddProduct()),
+                    );
+                  },
+                  child: Icon(Icons.edit),
+                )
+          : Container(),
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.endFloat, // Adjust as needed
       appBar: CustomAppBar(
         title: widget.appBarTitle,
         backgroundColor: mainColor,
-        icons: [Icons.search, Icons.more_vert],
-        onPressed: [
-          () {
-            print("Search Clicked");
-          },
-          () {
-            print("Vertical More Clicked");
-          },
-        ],
+        // icons: [Icons.search, Icons.more_vert],
+        // onPressed: [
+        //   () {
+        //     print("Search Clicked");
+        //   },
+        //   () {
+        //     print("Vertical More Clicked");
+        //   },
+        // ],
       ),
       drawer: MyDrawer(),
       body: widget.body,

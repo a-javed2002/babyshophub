@@ -33,7 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           children: [
             ListTile(
-              title: Text('Dark Theme'),
+              title: Text('Dark Theme',style: TextStyle(color: Colors.white)),
               trailing: Switch(
                 value: themeNotifier.isDarkTheme,
                 onChanged: (value) {
@@ -52,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
               child: ListTile(
-                title: Text('See Intro'),
+                title: Text('See Intro',style: TextStyle(color: Colors.white)),
               ),
             ),
             GestureDetector(
@@ -65,7 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
               child: ListTile(
-                title: Text('Change Password'),
+                title: Text('Change Password',style: TextStyle(color: Colors.white),),
               ),
             ),
             GestureDetector(
@@ -79,7 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
               child: ListTile(
-                title: Text('Logout'),
+                title: Text('Logout',style: TextStyle(color: Colors.white)),
               ),
             ),
           ],

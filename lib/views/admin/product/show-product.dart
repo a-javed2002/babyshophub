@@ -12,6 +12,8 @@ class ShowProduct extends StatelessWidget {
   Widget build(BuildContext context) {
     return AdminCustomScaffold(
       context: context,
+      bottom: true,
+      cat: false,
       appBarTitle: "Manage Products",
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -136,11 +138,11 @@ class ShowProduct extends StatelessWidget {
       BuildContext context, QueryDocumentSnapshot product) async {
     // Retrieve category data
     String productName = product['name'];
-    String productStatus = product['status'];
-    String productPrice = product['price'];
-    String productQuantity = product['quantity'];
+    String productStatus = product['status'].toString();
+    String productPrice = product['price'].toString();
+    String productQuantity = product['quantity'].toString();
     String productDescription = product['description'];
-    List<String> productImageUrl = product['imageUrl'];
+    List<String> productImageUrl = product['imageUrls'];
 
     // Show the edit category dialog
     bool result = await showDialog(

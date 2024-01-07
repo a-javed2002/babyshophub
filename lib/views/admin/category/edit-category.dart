@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
-
 class EditCategoryDialog extends StatefulWidget {
   final String categoryId;
   final String categoryName;
@@ -34,7 +33,7 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
   bool temp = false;
   FilePickerResult? result;
   late File _selectedImage;
-
+  Map<String, dynamic> updatedData = {};
   @override
   void initState() {
     super.initState();
@@ -87,7 +86,8 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
                               IconButton(
                                   onPressed: () async {
                                     await updateCategoryImage(
-                                        newCategoryImageUrl: "",CatId: widget.categoryId);
+                                        newCategoryImageUrl: "",
+                                        CatId: widget.categoryId);
                                   },
                                   icon: Icon(
                                     Icons.remove,
@@ -128,10 +128,12 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
             ),
           ),
           TextField(
+            style: TextStyle(color: Colors.black),
             controller: _nameController,
             decoration: InputDecoration(labelText: "Name"),
           ),
           TextField(
+            style: TextStyle(color: Colors.black),
             controller: _descriptionController,
             decoration: InputDecoration(labelText: "Description"),
           ),
@@ -140,13 +142,13 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
       ),
       actions: <Widget>[
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => Navigator.of(context).pop({'name': _nameController.text, 'description': _descriptionController.text,'change':'0'}),
           child: Text("Cancel"),
         ),
         TextButton(
           onPressed: () {
             // Save the changes
-            Navigator.of(context).pop(true);
+            Navigator.of(context).pop({'name': _nameController.text, 'description': _descriptionController.text,'change':'1'});
             setState(() {});
           },
           child: Text("Save"),
@@ -223,7 +225,8 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
                 if (imageUrl != null) {
                   // Do something with the imageUrl, e.g., update UI or send to Firestore
                   print('New profile image URL: $imageUrl');
-                  await updateCategoryImage(newCategoryImageUrl: imageUrl,CatId: widget.categoryId);
+                  await updateCategoryImage(
+                      newCategoryImageUrl: imageUrl, CatId: widget.categoryId);
                 }
 
                 // Close the dialog
@@ -260,8 +263,8 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
     );
   }
 
-  
-  Future<void> updateCategoryImage({required String newCategoryImageUrl,required String CatId}) async {
+  Future<void> updateCategoryImage(
+      {required String newCategoryImageUrl, required String CatId}) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
 

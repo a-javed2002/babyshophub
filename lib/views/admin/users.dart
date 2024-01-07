@@ -1,4 +1,5 @@
 import 'package:babyshophub/consts/firestore_consts.dart';
+import 'package:babyshophub/views/admin/order/order-details.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -115,7 +116,7 @@ class _MyUsersState extends State<MyUsers> {
                   ),
                   GestureDetector(
                       onTap: () {
-                        // _showOrdersDetailsDialog(context, userData['orders']);
+                        _showOrdersDetailsDialog(context, userData['orders']);
                       },
                       child: Text(
                         'Orders: ${userData['orders'].length}',
@@ -132,7 +133,10 @@ class _MyUsersState extends State<MyUsers> {
                             'Address: ${userData['address'].length}',
                             style: TextStyle(color: Colors.black),
                           ),
-                          Icon(Icons.search,color: Colors.deepPurple,)
+                          Icon(
+                            Icons.search,
+                            color: Colors.deepPurple,
+                          )
                         ],
                       )),
 
@@ -147,10 +151,12 @@ class _MyUsersState extends State<MyUsers> {
                             'Contact: ${userData['contact'].length}',
                             style: TextStyle(color: Colors.black),
                           ),
-                          Icon(Icons.search,color: Colors.deepPurple,)
+                          Icon(
+                            Icons.search,
+                            color: Colors.deepPurple,
+                          )
                         ],
-                      )
-                      ),
+                      )),
                   Text(
                     'Timestamp: ${userData['timestamp']}',
                     style: TextStyle(color: Colors.black),
@@ -291,13 +297,14 @@ class _MyUsersState extends State<MyUsers> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        int count=0;
         return AlertDialog(
-          title: Text('Address'),
+          title: Text('Orders'),
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Address Are:"),
+              Text("Orders Are:"),
               SizedBox(width: 8.0),
               Expanded(
                 child: Container(
@@ -306,61 +313,19 @@ class _MyUsersState extends State<MyUsers> {
                     scrollDirection: Axis.horizontal,
                     itemCount: order.length,
                     itemBuilder: (BuildContext context, int index) {
-                      dynamic orderData = getOrderDetails(order[index]);
-                      return ListView(
-                        children: [
-                          ListTile(
-                            title: Text('Order ID: ${order[index]}'),
-                            subtitle: Text('Date: ${orderData['timestamp']}'),
-                            // Add other order details as needed
-                          ),
-                          SizedBox(height: 10), // Add some spacing
-
-                          // Display order items
-                          ...List.generate(
-                            (orderData['orderItems'] as List<dynamic>).length,
-                            (index) {
-                              final orderItem = orderData['orderItems'][index]
-                                  as Map<String, dynamic>;
-
-                              return GestureDetector(
-                                onTap: () {
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => ProductDetails(
-                                  //         productId: orderItem['productId']),
-                                  //   ),
-                                  // );
-                                },
-                                child: Card(
-                                  child: ListTile(
-                                    title:
-                                        Text('Product: ${orderItem['name']}'),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                            'Quantity: ${orderItem['quantity']}'),
-                                        Text(
-                                            'Price: \$${orderItem['price']}'), // Assuming 'price' is a numeric field
-                                      ],
-                                    ),
-                                    leading: Image.network(
-                                      orderItem[
-                                          'imageUrls'], // Assuming 'imageUrl' is a valid URL
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    // Add other product details as needed
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                      count++;
+                      return ListTile(
+                        title: Text("Order-$count"),
+                        subtitle: Text('Order ID: ${order[index]}'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  OrderDetailsScreen(order[index], "Order-${count}"),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -379,21 +344,5 @@ class _MyUsersState extends State<MyUsers> {
         );
       },
     );
-  }
-
-  Future<DocumentSnapshot<Object?>?> getOrderDetails(String orderId) async {
-    try {
-      final CollectionReference orders =
-          FirebaseFirestore.instance.collection(ordersCollection);
-
-      // Fetch order details using orderId
-      DocumentSnapshot orderSnapshot = await orders.doc(orderId).get();
-
-      return orderSnapshot;
-    } catch (e) {
-      print('Error fetching order details: $e');
-      // Return an empty DocumentSnapshot in case of an error
-      return null;
-    }
   }
 }

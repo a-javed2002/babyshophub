@@ -131,6 +131,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
         return GestureDetector(
           onTap: () {
+            print("tile clicked.....");
             ChatScreen(
               currentUserUid: currentUserUid,
               recipientUid: secondUserUid,

@@ -179,71 +179,71 @@ class _MyDashboardState extends State<MyDashboard> {
             ),
 
             // Fetch Top Selling Products Data
-            FutureBuilder<List<Data>>(
-              future: fetchTopSellingProductsData(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('Error loading top selling products data');
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Text('No data available for top selling products');
-                } else {
-                  return GestureDetector(
-                    onTap: () {
-                      print("Container tapped!");
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return Dialog(
-                            insetPadding: EdgeInsets.zero,
-                            child: Container(
-                              color: mainLightColor,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.close),
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      print("Dialog closed");
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: MyDoughnut(
-                                      data: snapshot.data!,
-                                      mainTitle: "Top Selling Products",
-                                      legendTitle: "Products",
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 300,
-                          child: MyDoughnut(
-                            data: snapshot.data!,
-                            mainTitle: "Top Selling Products",
-                            legendTitle: "Products",
-                          ),
-                        ),
-                        Positioned(
-                          top: 8.0,
-                          right: 8.0,
-                          child: Icon(Icons.fit_screen, color: mainColor),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              },
-            ),
+            // FutureBuilder<List<Data>>(
+            //   future: fetchTopSellingProductsData(),
+            //   builder: (context, snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.waiting) {
+            //       return CircularProgressIndicator();
+            //     } else if (snapshot.hasError) {
+            //       return Text('Error loading top selling products data');
+            //     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            //       return Text('No data available for top selling products');
+            //     } else {
+            //       return GestureDetector(
+            //         onTap: () {
+            //           print("Container tapped!");
+            //           showDialog(
+            //             context: context,
+            //             builder: (context) {
+            //               return Dialog(
+            //                 insetPadding: EdgeInsets.zero,
+            //                 child: Container(
+            //                   color: mainLightColor,
+            //                   child: Column(
+            //                     crossAxisAlignment: CrossAxisAlignment.end,
+            //                     children: [
+            //                       IconButton(
+            //                         icon: Icon(Icons.close),
+            //                         onPressed: () {
+            //                           Navigator.pop(context);
+            //                           print("Dialog closed");
+            //                         },
+            //                       ),
+            //                       Expanded(
+            //                         child: MyDoughnut(
+            //                           data: snapshot.data!,
+            //                           mainTitle: "Top Selling Products",
+            //                           legendTitle: "Products",
+            //                         ),
+            //                       ),
+            //                     ],
+            //                   ),
+            //                 ),
+            //               );
+            //             },
+            //           );
+            //         },
+            //         child: Stack(
+            //           children: [
+            //             Container(
+            //               height: 300,
+            //               child: MyDoughnut(
+            //                 data: snapshot.data!,
+            //                 mainTitle: "Top Selling Products",
+            //                 legendTitle: "Products",
+            //               ),
+            //             ),
+            //             Positioned(
+            //               top: 8.0,
+            //               right: 8.0,
+            //               child: Icon(Icons.fit_screen, color: mainColor),
+            //             ),
+            //           ],
+            //         ),
+            //       );
+            //     }
+            //   },
+            // ),
 
             // const Divider(),
             // MyHorizontalBarChart(),
@@ -331,6 +331,8 @@ class _MyDashboardState extends State<MyDashboard> {
     // Create a Map to store the sales count for each product
     Map<String, int> productSalesMap = {};
 
+    print("length is ${ordersSnapshot.size}");
+
     // Process the ordersSnapshot to update the sales count for each product
     for (QueryDocumentSnapshot<Map<String, dynamic>> orderDoc
         in ordersSnapshot.docs) {
@@ -349,6 +351,7 @@ class _MyDashboardState extends State<MyDashboard> {
         }
       }
     }
+
 
     // Convert the productSalesMap to a List<Data>
     List<Data> result = [];

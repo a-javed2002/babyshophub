@@ -62,6 +62,10 @@ class _SplashScreenState extends State<SplashScreen> {
             );
           } else {
             print("error page navigator");
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MyHomePage()),
+            );
           }
         } else {
           print(
@@ -115,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen> {
         SizedBox(height: 16), // Add some spacing between animation and text
         Text(
           "BABY SHOP HUB",
-          style: TextStyle(color: textColor, fontSize: 20),
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         SizedBox(height: 16), // Add some spacing between text and bottom credits
         Align(
@@ -124,7 +128,7 @@ class _SplashScreenState extends State<SplashScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               "Credits: @AbdJav",
-              style: TextStyle(color: textColor),
+              style: TextStyle(color: Colors.white),
             ),
           ),
         ),

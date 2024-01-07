@@ -73,10 +73,8 @@ class _AllProductScreenState extends State<AllProductScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text('Product List'),
-        automaticallyImplyLeading: false
-      ),
+      appBar:
+          AppBar(title: Text('Product List'), automaticallyImplyLeading: false),
       body: Column(
         children: [
           Row(
@@ -225,52 +223,6 @@ class _AllProductScreenState extends State<AllProductScreen> {
                                             setState(() {});
                                           },
                                         ),
-                                        // trailing: Column(
-                                        //   mainAxisAlignment: MainAxisAlignment.center,
-                                        //   crossAxisAlignment:
-                                        //       CrossAxisAlignment.start,
-                                        //   children: [
-                                        //     isProductInWishlist
-                                        //         ? IconButton(
-                                        //             icon: Icon(Icons.favorite,
-                                        //                 color: Colors.red),
-                                        //             onPressed: () async {
-                                        //               await _controllerWishlist
-                                        //                   .removeFromWishlist(
-                                        //                       products[index].id);
-                                        //               showToast(
-                                        //                   'Removed from Wishlist');
-                                        //               setState(() {});
-                                        //             },
-                                        //           )
-                                        //         : IconButton(
-                                        //             icon: Icon(Icons.favorite_border,
-                                        //                 color: Colors.white),
-                                        //             onPressed: () async {
-                                        //               await _controllerWishlist
-                                        //                   .addToWishlist(
-                                        //                       products[index].id);
-                                        //               showToast('Added to Wishlist');
-                                        //               setState(() {});
-                                        //             },
-                                        //           ),
-                                        //     SizedBox(
-                                        //       height: 5,
-                                        //     ),
-                                        //     IconButton(
-                                        //       icon: Icon(Icons.add_shopping_cart,
-                                        //           color: textColor),
-                                        //       onPressed: () async {
-                                        //         await _controllerCart.addToCart(
-                                        //             products[index].id, 1);
-                                        //         isProductCart
-                                        //             ? showToast('Already In Cart')
-                                        //             : showToast('Added to Cart');
-                                        //         setState(() {});
-                                        //       },
-                                        //     ),
-                                        //   ],
-                                        // ),
                                       ),
                                     ),
                                   );
@@ -328,44 +280,12 @@ class _AllProductScreenState extends State<AllProductScreen> {
                 items: _categories,
                 onItemSelected: (selectedValue) {
                   // Handle the selected value in the parent widget
-                  print('Selected value in parent widget: $selectedValue');
+                  // print('Selected value in parent widget: $selectedValue');
                   selectedcategory = selectedValue;
-                  _onSearchChanged;
+                  print("Selected category is $selectedcategory");
+                  _buildQueryStream();
                 },
               ),
-              // SizedBox(
-              //   height: 10,
-              // ),
-              // Wrap(
-              //   crossAxisAlignment: WrapCrossAlignment.start,
-              //   spacing: 2.0,
-              //   runSpacing: 2.0,
-              //   children: [
-              //     Container(
-              //       width: double.infinity,
-              //       color: mainColor,
-              //       padding: const EdgeInsets.symmetric(vertical: 8.0),
-              //       child: Center(
-              //         child: Text(
-              //           'Material Type',
-              //           style: TextStyle(
-              //             fontSize: 18,
-              //             fontWeight: FontWeight.bold,
-              //             color: Colors.white,
-              //           ),
-              //         ),
-              //       ),
-              //     ),
-              //     CustomCheckBoxBtn(title: 'LAMINATION'),
-              //     CustomCheckBoxBtn(title: 'PLYWOOD'),
-              //     CustomCheckBoxBtn(title: 'CHEMICAL'),
-              //     CustomCheckBoxBtn(title: 'MTW'),
-              //     CustomCheckBoxBtn(title: 'VENEERED PANEL'),
-              //     CustomCheckBoxBtn(title: 'DOOR SKIN'),
-              //     CustomCheckBoxBtn(title: 'EDGE BANDING'),
-              //     CustomCheckBoxBtn(title: 'SOFTWOOD LUMBER'),
-              //   ],
-              // ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -390,7 +310,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context); // Close the drawer
-                      _onSearchChanged("");
+                      _buildQueryStream();
                     },
                     child: Center(child: Text('Search')),
                   ),
@@ -431,7 +351,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                       } else {
                         priceAscending = false;
                       }
-                      _onSearchChanged("");
+                      _buildQueryStream();
                     },
                   ),
                 ],
@@ -469,7 +389,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                       } else {
                         nameAscending = false;
                       }
-                      _onSearchChanged("");
+                      _buildQueryStream();
                       // You can perform any action with the selected value here
                     },
                   ),
@@ -484,6 +404,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
 
   Stream<QuerySnapshot> _buildQueryStream() {
     try {
+      print("Fetching Started");
       String searchTerm = _searchController.text.toLowerCase();
       CollectionReference productsRef =
           FirebaseFirestore.instance.collection('products');
@@ -522,6 +443,13 @@ class _AllProductScreenState extends State<AllProductScreen> {
         query = query.orderBy('name', descending: true);
       }
 
+      query.snapshots().listen((QuerySnapshot snapshot) {
+    snapshot.docs.forEach((DocumentSnapshot document) {
+      print('Document ID: ${document.id}');
+      print('Data: ${document.data()}');
+    });
+  });
+
       return query.snapshots();
     } catch (e) {
       // Log the error to the console
@@ -532,9 +460,6 @@ class _AllProductScreenState extends State<AllProductScreen> {
   }
 
   void _onSearchChanged(String value) {
-  setState(() {
-    // Trigger the rebuild with the updated search term
-    // This will cause the StreamBuilder to re-run the query with the new search term
-  });
-}
+    setState(() {});
+  }
 }

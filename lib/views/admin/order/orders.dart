@@ -221,6 +221,9 @@ class _OrdersScreenState extends State<OrdersScreen>
           ),
           TabBar(
             controller: _tabController,
+            unselectedLabelColor: Color.fromARGB(255, 230, 130, 255),
+            indicatorColor: Color.fromARGB(255, 230, 130, 255),
+            labelColor: Colors.white,
             isScrollable: true, // Set this property to true for horizontal scrolling
             tabs: [
               Tab(text: 'All'),
@@ -300,7 +303,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                     fontSize: 16,
                   ),
                 ),
-                subtitle: Text('Timestamp: ${orderIds[index]}'),
+                subtitle: Text('Order ID: ${orderIds[index]}'),
                 onTap: () {
                   Navigator.push(
                     context,

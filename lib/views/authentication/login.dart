@@ -22,10 +22,8 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLoading = false;
-  TextEditingController _emailController =
-      TextEditingController();
-  TextEditingController _passwordController =
-      TextEditingController();
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   late AuthController _authController;
 
@@ -393,6 +391,12 @@ class _LoginPageState extends State<LoginPage> {
                                             if (userCredential != null) {
                                               print(
                                                   "Signed in: ${userCredential.user?.displayName}");
+                                                  Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MyHomePage()),
+                                              );
                                               // Navigate to the next screen or perform other actions
                                             } else {
                                               print(
@@ -411,6 +415,12 @@ class _LoginPageState extends State<LoginPage> {
                                             if (userCredential != null) {
                                               print(
                                                   "Signed in: ${userCredential}");
+                                                  Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MyHomePage()),
+                                              );
                                               // Navigate to the next screen or perform other actions
                                             } else {
                                               print(
@@ -429,6 +439,12 @@ class _LoginPageState extends State<LoginPage> {
                                             if (userCredential != null) {
                                               print(
                                                   "Signed in: ${userCredential.user?.displayName}");
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MyHomePage()),
+                                              );
                                               // Navigate to the next screen or perform other actions
                                             } else {
                                               print(

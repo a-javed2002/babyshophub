@@ -12,6 +12,8 @@ class ShowCategory extends StatelessWidget {
   Widget build(BuildContext context) {
     return AdminCustomScaffold(
       context: context,
+      bottom: true,
+      cat: true,
       appBarTitle: "Manage Categories",
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -31,6 +33,8 @@ class ShowCategory extends StatelessWidget {
           }
 
           List<QueryDocumentSnapshot> categories = snapshot.data!.docs;
+
+          
 
           return ListView.builder(
             itemCount: categories.length,
@@ -183,7 +187,7 @@ class ShowCategory extends StatelessWidget {
     String categoryImageUrl = category['imageUrl'];
 
     // Show the edit category dialog
-    bool result = await showDialog(
+    var result = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return EditCategoryDialog(
@@ -195,17 +199,19 @@ class ShowCategory extends StatelessWidget {
       },
     );
 
+    print("$result");
+
+
     // Update Firestore if the user pressed "Save" in the dialog
-    if (result == true) {
-      print("updating to $categoryDescription");
+    if (result['change'] =='1'){
+      print("inside");
       try {
         await FirebaseFirestore.instance
             .collection(categoriesCollection)
             .doc(category.id)
             .update({
-          'name': categoryName,
-          'description': categoryDescription,
-          'imageUrl': categoryImageUrl,
+          'name': result['name'],
+          'description': result['description'],
           'last_update_date': FieldValue.serverTimestamp(),
         });
         

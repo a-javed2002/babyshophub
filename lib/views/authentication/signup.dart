@@ -17,12 +17,11 @@ class _SignUpPageState extends State<SignUpPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLoading = false;
   String _username = '';
-  String _cnic = '';
+  String _cnic = '0';
   String _email = '';
   String _password = '';
   String _selectedRole = 'user';
   bool _isPasswordVisible = false;
-
   String _validateFields() {
     String msg = '';
 
@@ -35,10 +34,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
     if (_username.length < 3) {
       msg += 'Username must be at least 3 characters.\n';
-    }
-
-    if (_cnic.length < 10) {
-      msg += 'CNIC must be at least 10 characters.\n';
     }
 
     if (_password.length < 6) {
@@ -323,7 +318,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       style: TextStyle(color: Colors.black),
                                       decoration: InputDecoration(
                                         border: InputBorder.none,
-                                        hintText: "Email",
+                                        hintText: "Username",
                                         hintStyle:
                                             TextStyle(color: Colors.grey[700]),
                                         prefixIcon: Icon(Icons
@@ -331,33 +326,33 @@ class _SignUpPageState extends State<SignUpPage> {
                                       ),
                                     ),
                                   ),
-                                  Container(
-                                    padding: EdgeInsets.all(8.0),
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color:
-                                              Color.fromRGBO(143, 148, 251, 1),
-                                        ),
-                                      ),
-                                    ),
-                                    child: TextField(
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _cnic = value;
-                                        });
-                                      },
-                                      style: TextStyle(color: Colors.black),
-                                      decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        hintText: "CNIC",
-                                        hintStyle:
-                                            TextStyle(color: Colors.grey[700]),
-                                        prefixIcon: Icon(Icons
-                                            .document_scanner), // Add icon to the left
-                                      ),
-                                    ),
-                                  ),
+                                  // Container(
+                                  //   padding: EdgeInsets.all(8.0),
+                                  //   decoration: BoxDecoration(
+                                  //     border: Border(
+                                  //       bottom: BorderSide(
+                                  //         color:
+                                  //             Color.fromRGBO(143, 148, 251, 1),
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  //   child: TextField(
+                                  //     onChanged: (value) {
+                                  //       setState(() {
+                                  //         _cnic = value;
+                                  //       });
+                                  //     },
+                                  //     style: TextStyle(color: Colors.black),
+                                  //     decoration: InputDecoration(
+                                  //       border: InputBorder.none,
+                                  //       hintText: "CNIC",
+                                  //       hintStyle:
+                                  //           TextStyle(color: Colors.grey[700]),
+                                  //       prefixIcon: Icon(Icons
+                                  //           .document_scanner), // Add icon to the left
+                                  //     ),
+                                  //   ),
+                                  // ),
                                   Container(
                                     padding: EdgeInsets.all(8.0),
                                     decoration: BoxDecoration(
@@ -432,7 +427,9 @@ class _SignUpPageState extends State<SignUpPage> {
                       SizedBox(
                         height: 30,
                       ),
-                      FadeInUp(
+                      isLoading
+                          ? CustomLoader()
+                          :FadeInUp(
                           duration: Duration(milliseconds: 1900),
                           child: isLoading
                                   ? CustomLoader()

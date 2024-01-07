@@ -46,47 +46,55 @@ class AuthController {
   // }
 
   Future<UserCredential?> handleGoogleSignIn() async {
-    try {
-      final GoogleSignInAccount? googleSignInAccount =
-          await googleSignIn.signIn();
-      if (googleSignInAccount == null) {
-        // User canceled the sign-in process
-        return null;
-      }
-
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          await googleSignInAccount.authentication;
-
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleSignInAuthentication.accessToken,
-        idToken: googleSignInAuthentication.idToken,
-      );
-
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-
-      // Check if the user with the same email already exists in Firebase Authentication
-      final existingUser =
-          await _auth.fetchSignInMethodsForEmail(userCredential.user!.email!);
-
-      if (existingUser.isEmpty) {
-        // If the user doesn't exist, sign them up
-        await _auth.createUserWithEmailAndPassword(
-          email: userCredential.user!.email!,
-          password:
-              'a_random_password', // You can generate a random password or use any desired method
-        );
-      }
-
-      // Store user information in Firestore
-      await _storeUserData(userCredential.user!,'google');
-
-      return userCredential;
-    } catch (error) {
-      print("Error signing in with Google: $error");
+  try {
+    final GoogleSignInAccount? googleSignInAccount =
+        await googleSignIn.signIn();
+    if (googleSignInAccount == null) {
+      // User canceled the sign-in process
       return null;
     }
+
+    final GoogleSignInAuthentication googleSignInAuthentication =
+        await googleSignInAccount.authentication;
+
+    final AuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleSignInAuthentication.accessToken,
+      idToken: googleSignInAuthentication.idToken,
+    );
+
+    final UserCredential userCredential =
+        await _auth.signInWithCredential(credential);
+
+    try {
+      // Check if the user with the same email already exists in Firebase Authentication
+      await _auth.fetchSignInMethodsForEmail(userCredential.user!.email!);
+    } on FirebaseAuthException catch (e) {
+      print("e code is ${e.code}");
+      if (e.code.contains("email-already-in-use")) {
+        // Email is already in use, return the existing user's credentials
+        return userCredential;
+      } else {
+        // Handle other FirebaseAuthException codes if needed
+        print("FirebaseAuthException: ${e.message}");
+        return null;
+      }
+    }
+
+    // If the user doesn't exist, sign them up
+    await _auth.createUserWithEmailAndPassword(
+      email: userCredential.user!.email!,
+      password: 'a_random_password', // You can generate a random password or use any desired method
+    );
+
+    // Store user information in Firestore
+    await _storeUserData(userCredential.user!, 'google');
+
+    return userCredential;
+  } catch (error) {
+    print("Error signing in with Google: $error");
+    return null;
   }
+}
 
   Future<void> _storeUserData(User user, String provider) async {
     // Store user information in Firestore
