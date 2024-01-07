@@ -233,7 +233,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                 filterOrders(value);
               },
               decoration: InputDecoration(
-                hintText: 'Search by Order ID or Timestamp',
+                hintText: 'Search by Order ID',
                 prefixIcon: Icon(Icons.search),
               ),
             ),
@@ -276,13 +276,16 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
             );
           }
 
+          int count=0;
+
           return ListView.builder(
             itemCount: orderIds.length,
             itemBuilder: (context, index) {
               final orderId = orderIds[index];
+              count++;
               return ListTile(
                 title: HighlightedText(
-                  text: 'Order ID: $orderId',
+                  text: 'Order-${count}',
                   query: searchController.text,
                   highlightStyle: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -296,12 +299,12 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                     fontSize: 16,
                   ),
                 ),
-                subtitle: Text('Timestamp: ${orderIds[index]}'),
+                subtitle: Text('Order ID: ${orderIds[index]}'),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MyOrderDetailsScreen(orderId),
+                      builder: (context) => MyOrderDetailsScreen(orderId,"Order-${count}"),
                     ),
                   );
                 },

@@ -33,7 +33,7 @@ class _CategoryPageState extends State<CategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.purple.shade100,
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
@@ -150,19 +150,19 @@ class _CategoryPageState extends State<CategoryPage> {
                               fontSize: 18,
                               fontWeight: FontWeight.bold),
                         ),
-                        Row(
-                          children: <Widget>[
-                            Text(
-                              "",
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Icon(Icons.arrow_forward_ios,
-                                size: 11, color: Colors.grey),
-                          ],
-                        ),
+                        // Row(
+                        //   children: <Widget>[
+                        //     Text(
+                        //       "",
+                        //       style: TextStyle(color: Colors.grey),
+                        //     ),
+                        //     SizedBox(
+                        //       width: 5,
+                        //     ),
+                        //     Icon(Icons.arrow_forward_ios,
+                        //         size: 11, color: Colors.grey),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),

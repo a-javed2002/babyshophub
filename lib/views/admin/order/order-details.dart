@@ -13,8 +13,8 @@ enum OrderStatus {
 
 class OrderDetailsScreen extends StatefulWidget {
   final String orderId;
-
-  OrderDetailsScreen(this.orderId);
+final String orderNumber;
+  OrderDetailsScreen(this.orderId, this.orderNumber);
 
   @override
   _OrderDetailsScreenState createState() => _OrderDetailsScreenState();
@@ -45,7 +45,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order Details'),
+        title: Text('${widget.orderNumber}'),
       ),
       body: Column(
         children: [
@@ -123,9 +123,27 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 ],
                               ),
                       ),
-                      ListTile(
-                        title: Text('Order ID: ${widget.orderId}'),
-                        subtitle: Text('Date: ${orderData['timestamp']}'),
+                       ListTile(
+                        title: Column(
+                          children: [
+                            Text('Order ID: ${widget.orderId}'),
+                            const Divider(),
+                            Text('Name: ${orderData['name']}'),
+                            const Divider(),
+                            Text('Status: ${orderData['status']}'),
+                          ],
+                        ),
+                        subtitle: Column(
+                          children: [
+                            const Divider(),
+                            Text('Address: ${orderData['address']}'),
+                            const Divider(),
+                            Text('Contact: ${orderData['contact']}'),
+                            const Divider(),
+                            Text(
+                                'Date: ${(orderData['timestamp'] as Timestamp).toDate()}'),
+                          ],
+                        ),
                         // Add other order details as needed
                       ),
                       SizedBox(height: 10), // Add some spacing

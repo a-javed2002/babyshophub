@@ -74,6 +74,8 @@ class CategoryGrid extends StatelessWidget {
                   children: [
                     // Add category-specific widgets here
                     Text(category['name'],style: TextStyle(color: Colors.black),),
+                    const Divider(),
+                    Center(child: Text(category['description'],style: TextStyle(color: Colors.black),)),
                   ],
                 ),
               ),

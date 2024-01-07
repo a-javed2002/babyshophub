@@ -163,10 +163,11 @@ class _MyProfileState extends State<MyProfile> {
         child: Column(
           children: [
             Expanded(
-              flex: 1,
+              flex: 2,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 20,),
                   Center(
                     child: Padding(
                       padding: EdgeInsets.only(
@@ -213,7 +214,7 @@ class _MyProfileState extends State<MyProfile> {
                         );
                     },
                     child: Icon(Icons.message,
-                        color: textColor, size: screenWidth * 0.06),
+                        color: Colors.white, size: screenWidth * 0.06,),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -256,7 +257,7 @@ class _MyProfileState extends State<MyProfile> {
                                           },
                                           icon: Icon(
                                             Icons.remove,
-                                            color: Colors.red,
+                                            color: Colors.red, size: screenWidth * 0.06
                                           )),
                                       IconButton(
                                           onPressed: () {
@@ -266,7 +267,8 @@ class _MyProfileState extends State<MyProfile> {
                                           },
                                           icon: Icon(
                                             Icons.edit,
-                                            color: Colors.lightBlue,
+                                            color: Colors.lightBlue
+                                            , size: screenWidth * 0.06
                                           )),
                                     ],
                                   ),
@@ -304,7 +306,7 @@ class _MyProfileState extends State<MyProfile> {
                         );
                       },
                       child: Icon(Icons.settings,
-                          color: textColor, size: screenWidth * 0.06)),
+                          color: Colors.white, size: screenWidth * 0.06)),
                 ],
               ),
             ),
@@ -331,14 +333,14 @@ class _MyProfileState extends State<MyProfile> {
                         Text(
                           "${orders.length}",
                           style: TextStyle(
-                              color: Colors.purple,
+                              color: Colors.white,
                               fontSize: screenWidth * 0.04),
                         ),
                         SizedBox(height: 10,),
                         Text(
                           "Orders",
                           style: TextStyle(
-                              color: Colors.white, fontSize: screenWidth * 0.03),
+                              color: Colors.black, fontSize: screenWidth * 0.05),
                         ),
                       ],
                     ),
@@ -359,14 +361,14 @@ class _MyProfileState extends State<MyProfile> {
                         Text(
                           "${wishlist.length}",
                           style: TextStyle(
-                              color: Colors.purple,
+                              color: Colors.white,
                               fontSize: screenWidth * 0.04),
                         ),
                         SizedBox(height: 10,),
                         Text(
                           "Wishlist",
                           style: TextStyle(
-                              color: Colors.white, fontSize: screenWidth * 0.05,),
+                              color: Colors.black, fontSize: screenWidth * 0.05,),
                         ),
                       ],
                     ),
@@ -387,14 +389,14 @@ class _MyProfileState extends State<MyProfile> {
                         Text(
                           "${cart.length}",
                           style: TextStyle(
-                              color: Colors.purple,
+                              color: Colors.white,
                               fontSize: screenWidth * 0.04),
                         ),
                         SizedBox(height: 10,),
                         Text(
                           "Cart",
                           style: TextStyle(
-                              color: Colors.white, fontSize: screenWidth * 0.05),
+                              color: Colors.black, fontSize: screenWidth * 0.05),
                         ),
                       ],
                     ),
@@ -421,7 +423,7 @@ class _MyProfileState extends State<MyProfile> {
                   address.length > 0
                       ? Row(
                           children: [
-                            Text("Addresses Are:"),
+                            Text("Addresses Are:",style: TextStyle(color: Colors.black),),
                             SizedBox(width: 8.0),
                             Expanded(
                               child: Container(
@@ -446,12 +448,12 @@ class _MyProfileState extends State<MyProfile> {
                           ],
                         )
                       : Center(
-                          child: Text("No Address"),
+                          child: Text("No Address",style: TextStyle(color: Colors.black),),
                         ),
                   contact.length > 0
                       ? Row(
                           children: [
-                            Text("Contact Are:"),
+                            Text("Contact Are:",style: TextStyle(color: Colors.black),),
                             SizedBox(width: 8.0),
                             Expanded(
                               child: Container(
@@ -476,7 +478,7 @@ class _MyProfileState extends State<MyProfile> {
                           ],
                         )
                       : Center(
-                          child: Text("No Contact"),
+                          child: Text("No Contact",style: TextStyle(color: Colors.black),),
                         ),
                 ],
               ),

@@ -40,6 +40,7 @@ Widget LandingPage({required context}) {
         await FirebaseFirestore.instance.collection('orders').get();
 
     Set<String> uniqueProductIds = Set<String>();
+    int count = 0;
 
     for (QueryDocumentSnapshot order in orderSnapshot.docs) {
       List<dynamic> orderItems = order['orderItems'];
@@ -47,9 +48,16 @@ Widget LandingPage({required context}) {
         // Assuming each order item has a 'productId' field
         String productId = item['productId'];
         if (productId != null && productId.isNotEmpty) {
+          if (count == 10) {
+            break;
+          }
           print(productId);
           uniqueProductIds.add(productId);
+          count++;
         }
+      }
+      if (count == 10) {
+        break;
       }
     }
 
@@ -315,67 +323,75 @@ Widget LandingPage({required context}) {
                                 ConnectionState.waiting) {
                               return Container();
                             }
-                    
+
                             if (productSnapshot.hasError) {
                               return Text('Error: ${productSnapshot.error}');
                             }
-                    
+
                             final productDetails =
                                 productSnapshot.data!['productDetails'];
                             final categoryName =
                                 productSnapshot.data!['categoryName'];
-                    
-                            return  Container(
+
+                            return Container(
                               height: 320,
-                                child:
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ProductDetails(
-                                            productId: productId,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                      ),
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              Color.fromARGB(255, 192, 109, 224),
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Image.network(
-                                                productDetails['imageUrls'][0],height: 250,),
-                                            Text(
-                                              productDetails['name'],
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Price: \$${productDetails['price']}',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProductDetails(
+                                        productId: productId,
                                       ),
                                     ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
                                   ),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                        color: Colors.purple.shade200,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                            color: Colors.purpleAccent,
+                                            width: 3),
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Colors.blue.shade100,
+                                              blurRadius: 30,
+                                              offset: Offset(0, 10))
+                                        ]),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Image.network(
+                                          productDetails['imageUrls'][0],
+                                          height: 250,
+                                        ),
+                                        Text(
+                                          productDetails['name'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Price: \$${productDetails['price']}',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                             );
                           },
                         );
@@ -427,7 +443,7 @@ Widget LandingPage({required context}) {
                   }
 
                   // Set the limit for dynamic data
-                  int dataLimit = 6;
+                  int dataLimit = 7;
 
                   // Only take the top products up to the data limit
                   List<QueryDocumentSnapshot> topProducts =
@@ -459,9 +475,16 @@ Widget LandingPage({required context}) {
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: Color.fromARGB(255, 192, 109, 224),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
+                                      color: Colors.purple.shade200,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                          color: Colors.purpleAccent, width: 3),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: Colors.blue.shade100,
+                                            blurRadius: 30,
+                                            offset: Offset(0, 10))
+                                      ]),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.center,
@@ -513,8 +536,8 @@ Widget LandingPage({required context}) {
                                       child: Text(
                                         'See All Products -->',
                                         style: TextStyle(
-                                          color: Colors.white,
-                                        ),
+                                            color: Colors.deepPurple,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ),
@@ -530,6 +553,7 @@ Widget LandingPage({required context}) {
             ],
           ),
         ),
+
         // Container(
         //   padding: EdgeInsets.all(20),
         //   child: Column(

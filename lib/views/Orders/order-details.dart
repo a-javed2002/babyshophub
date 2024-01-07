@@ -13,8 +13,9 @@ enum OrderStatus {
 
 class MyOrderDetailsScreen extends StatefulWidget {
   final String orderId;
+  final String orderNumber;
 
-  MyOrderDetailsScreen(this.orderId);
+  MyOrderDetailsScreen(this.orderId, this.orderNumber);
 
   @override
   _MyOrderDetailsScreenState createState() => _MyOrderDetailsScreenState();
@@ -28,7 +29,7 @@ class _MyOrderDetailsScreenState extends State<MyOrderDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order Details'),
+        title: Text('${widget.orderNumber}'),
       ),
       body: Column(
         children: [
@@ -57,8 +58,26 @@ class _MyOrderDetailsScreenState extends State<MyOrderDetailsScreen> {
                           initialStatus: OrderStatusBar.getStatusEnum(
                               orderData['status'])),
                       ListTile(
-                        title: Text('Order ID: ${widget.orderId}'),
-                        subtitle: Text('Date: ${orderData['timestamp']}'),
+                        title: Column(
+                          children: [
+                            Text('Order ID: ${widget.orderId}'),
+                            const Divider(),
+                            Text('Name: ${orderData['name']}'),
+                            const Divider(),
+                            Text('Status: ${orderData['status']}'),
+                          ],
+                        ),
+                        subtitle: Column(
+                          children: [
+                            const Divider(),
+                            Text('Address: ${orderData['address']}'),
+                            const Divider(),
+                            Text('Contact: ${orderData['contact']}'),
+                            const Divider(),
+                            Text(
+                                'Date: ${(orderData['timestamp'] as Timestamp).toDate()}'),
+                          ],
+                        ),
                         // Add other order details as needed
                       ),
                       SizedBox(height: 10), // Add some spacing
@@ -160,6 +179,7 @@ class OrderStatusBar extends StatefulWidget {
   @override
   _OrderStatusBarState createState() => _OrderStatusBarState();
 }
+
 class _OrderStatusBarState extends State<OrderStatusBar> {
   double _statusBarHeight = 0.0;
   OrderStatus _currentStatus = OrderStatus.pending;

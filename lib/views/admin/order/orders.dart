@@ -277,13 +277,16 @@ class _OrdersScreenState extends State<OrdersScreen>
             );
           }
 
+          int count=0;
+
           return ListView.builder(
             itemCount: orderIds.length,
             itemBuilder: (context, index) {
               final orderId = orderIds[index];
+              count++;
               return ListTile(
                 title: HighlightedText(
-                  text: 'Order ID: $orderId',
+                  text: 'Order-$count',
                   query: searchController.text,
                   highlightStyle: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -302,7 +305,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => OrderDetailsScreen(orderId),
+                      builder: (context) => OrderDetailsScreen(orderId,"Order-${count}"),
                     ),
                   );
                 },
