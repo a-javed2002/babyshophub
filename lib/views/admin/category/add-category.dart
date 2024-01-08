@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:babyshophub/consts/consts.dart';
 import 'package:babyshophub/views/admin/category/show-category.dart';
 import 'package:babyshophub/views/common/admin-scaffold.dart';
+import 'package:babyshophub/views/common/loader.dart';
 import 'package:babyshophub/views/common/toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -24,6 +25,7 @@ class _AddCategoryState extends State<AddCategory> {
   late String _description;
   FilePickerResult? result;
   late File _selectedImage;
+  bool isLoading = false;
 
   Future<void> _getImage() async {
     try {
@@ -123,7 +125,9 @@ class _AddCategoryState extends State<AddCategory> {
               SizedBox(height: 16),
               getImageWidget(),
               SizedBox(height: 16),
-              ElevatedButton(
+              isLoading
+                          ? CustomLoader()
+                          :ElevatedButton(
                 onPressed: () {
                   _submitForm();
                 },
@@ -174,6 +178,9 @@ class _AddCategoryState extends State<AddCategory> {
   }
 
   void _addToFirestore() async {
+    setState(() {
+        isLoading = true; // Set isLoading to true before signup
+      });
     bool isDuplicate = await _checkDuplicateCategory();
 
     if (isDuplicate) {
@@ -218,6 +225,9 @@ class _AddCategoryState extends State<AddCategory> {
         });
       }
     }
+    setState(() {
+        isLoading = false; // Set isLoading to true before signup
+      });
   }
 
   Future<bool> _checkDuplicateCategory() async {

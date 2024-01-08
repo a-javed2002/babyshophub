@@ -92,6 +92,7 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
                                   icon: Icon(
                                     Icons.remove,
                                     color: Colors.red,
+                                    size: screenWidth * 0.06
                                   )),
                               IconButton(
                                   onPressed: () {
@@ -102,6 +103,7 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
                                   icon: Icon(
                                     Icons.edit,
                                     color: Colors.lightBlue,
+                                    size: screenWidth * 0.06
                                   )),
                             ],
                           ),

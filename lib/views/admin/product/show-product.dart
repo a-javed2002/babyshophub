@@ -40,8 +40,14 @@ class ShowProduct extends StatelessWidget {
               var product = products[index];
               return ListTile(
                 title: Text("${product['name']}"),
-                subtitle: Text(
-                    "${product['description']} === ${product['price']} === ${product['quantity']} === ${product['status']}"),
+                subtitle: Column(
+                  children: [
+                    Text(
+                        "Price \$${product['price']}"),
+                    Text(
+                        "Quantity \$${product['quantity']}"),
+                  ],
+                ),
                 leading: FutureBuilder<String>(
                   future: _getImageUrl(product['imageUrls'][0]),
                   builder: (context, imageUrlSnapshot) {
@@ -59,6 +65,7 @@ class ShowProduct extends StatelessWidget {
                     final imageUrl = imageUrlSnapshot.data ?? '';
                     return GestureDetector(
                       onTap: () {
+                        print("opening Detail");
                         _showProductDetailsPopup(context, product);
                       },
                       child: CircleAvatar(
@@ -77,18 +84,82 @@ class ShowProduct extends StatelessWidget {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
+                    product['status'] == '-1'
+                        ? IconButton(
+                            icon: Icon(Icons.restore),
+                            onPressed: () async {
+                              bool? confirmation =
+                                  await _showConfirmationDialog(context,
+                                      "Are sure you want to restore it?");
+                              if (!confirmation) {
+                                // User canceled the update
+                                return;
+                              }
+                              try {
+                                updateProductStatus(product.id, '1');
+                              } catch (e) {
+                                print("error restoring product $e");
+                              }
+                            },
+                          )
+                        : product['status'] == '1'
+                            ? IconButton(
+                                icon: Icon(Icons.visibility),
+                                onPressed: () async {
+                                  bool? confirmation =
+                                      await _showConfirmationDialog(context,
+                                          "Are sure you want to deactivate it?");
+                                  if (!confirmation) {
+                                    // User canceled the update
+                                    return;
+                                  }
+                                  try {
+                                    updateProductStatus(product.id, '0');
+                                  } catch (e) {
+                                    print("error deactivating product $e");
+                                  }
+                                },
+                              )
+                            : IconButton(
+                                icon: Icon(Icons.visibility_off),
+                                onPressed: () async {
+                                  bool? confirmation =
+                                      await _showConfirmationDialog(context,
+                                          "Are sure you want to activate it?");
+                                  if (!confirmation) {
+                                    // User canceled the update
+                                    return;
+                                  }
+                                  try {
+                                    updateProductStatus(product.id, '1');
+                                  } catch (e) {
+                                    print("error restoring product $e");
+                                  }
+                                },
+                              ),
+                    product['status'] != '-1'?IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
                         _editProduct(context, product);
                       },
-                    ),
-                    IconButton(
+                    ):Container(),
+                    product['status'] != '-1'?IconButton(
                       icon: Icon(Icons.delete),
-                      onPressed: () {
-                        _deleteCategory(context, product);
+                      onPressed: () async {
+                        bool? confirmation = await _showConfirmationDialog(
+                            context, "Are sure you want to delete it?");
+                        if (!confirmation) {
+                          // User canceled the update
+                          return;
+                        }
+                        try {
+                          updateProductStatus(product.id, '-1');
+                          print("deleted ${product.id}");
+                        } catch (e) {
+                          print("error delete product $e");
+                        }
                       },
-                    ),
+                    ):Container(),
                   ],
                 ),
               );
@@ -98,41 +169,108 @@ class ShowProduct extends StatelessWidget {
       ),
     );
   }
-  void _showProductDetailsPopup(BuildContext context, QueryDocumentSnapshot product) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Product Details'),
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.network(product['imageUrls'][0]), // Display the image in the popup
-            SizedBox(height: 10),
-            Text('Name: ${product['name']}'),
-            Text('Timestamp: ${product['timestamp']}'),
-            Text('Last Update Date: ${product['last_update_date']}'),
-            Text('Category ID: ${product['category_id_fk']}'),
-            SizedBox(height: 10),
-            Text('Description: ${product['description']}'),
-            Text('Price: ${product['price']}'),
-            Text('Quantity: ${product['quantity']}'),
-            Text('Status: ${product['status']}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the popup
-            },
-            child: Text('Close'),
-          ),
-        ],
-      );
-    },
-  );
-}
 
+  void _showProductDetailsPopup(
+      BuildContext context, QueryDocumentSnapshot product) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Product Details'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.network(
+                  product['imageUrls'][0]), // Display the image in the popup
+              SizedBox(height: 10),
+              Text(
+                'Name: ${product['name']}',
+                style: TextStyle(color: Colors.black),
+              ),
+              Text(
+                'Category ID: ${product['category_id_fk']}',
+                style: TextStyle(color: Colors.black),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Description: ${product['description']}',
+                style: TextStyle(color: Colors.black),
+              ),
+              Text(
+                'Price: ${product['price']}',
+                style: TextStyle(color: Colors.black),
+              ),
+              Text(
+                'Quantity: ${product['quantity']}',
+                style: TextStyle(color: Colors.black),
+              ),
+              Text(
+                'Status: ${product['status']}',
+                style: TextStyle(color: Colors.black),
+              ),
+              Text(
+                'Timestamp: ${(product['timestamp'] as Timestamp).toDate()}',
+                style: TextStyle(color: Colors.black),
+              ),
+              Text(
+                'Last Update Date: ${(product['last_update_date'] as Timestamp).toDate()}',
+                style: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the popup
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> _showConfirmationDialog(BuildContext context, String msg) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Update'),
+          content: Text('$msg',style: TextStyle(color: Colors.black),),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // User canceled the update
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // User confirmed the update
+              },
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> updateProductStatus(String productId, String newStatus) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection(productsCollection)
+          .doc(productId)
+          .update({
+        'status': newStatus,
+      });
+      print('Product status updated successfully');
+    } catch (e) {
+      print('Error updating product status: $e');
+      // Handle error as needed
+    }
+  }
 
   Future<void> _editProduct(
       BuildContext context, QueryDocumentSnapshot product) async {
@@ -142,10 +280,12 @@ class ShowProduct extends StatelessWidget {
     String productPrice = product['price'].toString();
     String productQuantity = product['quantity'].toString();
     String productDescription = product['description'];
-    List<String> productImageUrl = product['imageUrls'];
+    List<dynamic> productImageUrl = product['imageUrls'];
+
+    print("Sjowing edit page");
 
     // Show the edit category dialog
-    bool result = await showDialog(
+    var result = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return EditProductDialog(
@@ -161,18 +301,18 @@ class ShowProduct extends StatelessWidget {
     );
 
     // Update Firestore if the user pressed "Save" in the dialog
-    if (result == true) {
+    if (result['change'] =='1'){
+      print("inside");
       print("updating to $productDescription");
       try {
         await FirebaseFirestore.instance
             .collection(productsCollection)
             .doc(product.id)
             .update({
-          'name': productName,
-          'description': productDescription,
-          'price': productPrice,
-          'quantity': productQuantity,
-          'status': productStatus,
+          'name': result['name'],
+          'description': result['description'],
+          'price': result['price'],
+          'quantity': result['quantity'],
           'last_update_date': FieldValue.serverTimestamp(),
         });
 

@@ -49,6 +49,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
           };
         }).toList();
 
+        print(chatDoc.id);
+
         String first = chatDoc.id.split("_")[0];
         String second = chatDoc.id.split("_")[1];
         count = 0;
@@ -56,9 +58,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
         if (first != currentUserUid) {
           secondUserUid = first;
           userData = await getUserById(first);
+          print("in first $secondUserUid");
         } else {
           secondUserUid = second;
           userData = await getUserById(second);
+          print("in second $secondUserUid");
         }
 
         // Sort messages by timestamp to get the latest message first
@@ -68,7 +72,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         for (var v = 0; v < messagesData.length; v++) {
           // print("Before ${messagesData[v]['messageText']['status']}");
           if (messagesData[v]['messageText']['status'].toString() == '1') {
-          // print("After ${messagesData[v]['messageText']['status']}");
+            // print("After ${messagesData[v]['messageText']['status']}");
             count++;
           }
         }
@@ -77,6 +81,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         chatsData.add({
           'counted': count,
           'chatId': chatId,
+          'secondUserUid': secondUserUid,
           'userData': userData,
           'chatStatus': chatStatus,
           'latestMessage': messagesData.isNotEmpty ? messagesData[0] : null,
@@ -130,37 +135,57 @@ class _ChatListScreenState extends State<ChatListScreen> {
         final user = chat['userData'];
 
         return GestureDetector(
-          onTap: () {
-            print("tile clicked.....");
-            ChatScreen(
-              currentUserUid: currentUserUid,
-              recipientUid: secondUserUid,
-            );
-          },
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(user['imageUrl']),
-            ),
-            title: Text(user['username']),
-            subtitle: Text(
-                "${latestMessage['messageText']['text'].toString().substring(0, 22)}...."),
-            trailing: Text("${chat['counted']}"),
-          ),
-        );
+            onTap: () {
+              print("tile clicked.....");
 
-        return ListTile(
-          title: Text('Chat ID: ${chat['chatId'] ?? 'N/A'}'),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Chat Status: ${chat['chatStatus'] ?? 'N/A'}'),
-              Text("user data${user}"),
-              if (latestMessage != null)
-                Text(
-                    'Latest Message: ${latestMessage['messageText']['text'] ?? 'N/A'}'),
-            ],
-          ),
-        );
+              print(currentUserUid);
+              print(secondUserUid);
+              
+              Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatScreen(
+                currentUserUid: currentUserUid,
+                recipientUid: chat['secondUserUid'],
+              )),
+            );
+            },
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage(user['imageUrl']),
+              ),
+              title: Text(user['username']),
+              subtitle: Text(
+                  "${latestMessage['messageText']['text'].toString().substring(0, 22)}...."),
+              trailing: Container(
+                padding: EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: Text(
+                  "${chat['counted']}",
+                  style: TextStyle(
+                    color:
+                        Colors.deepPurple, // You can adjust the text color as needed
+                  ),
+                ),
+              ),
+            )
+            );
+
+        // return ListTile(
+        //   title: Text('Chat ID: ${chat['chatId'] ?? 'N/A'}'),
+        //   subtitle: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       Text('Chat Status: ${chat['chatStatus'] ?? 'N/A'}'),
+        //       Text("user data${user}"),
+        //       if (latestMessage != null)
+        //         Text(
+        //             'Latest Message: ${latestMessage['messageText']['text'] ?? 'N/A'}'),
+        //     ],
+        //   ),
+        // );
       },
     );
   }

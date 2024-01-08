@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:babyshophub/views/admin/product/show-product.dart';
+import 'package:babyshophub/views/common/loader.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ class _AddProductState extends State<AddProduct> {
   late int _quantity;
   late String _selectedCategoryId = "";
   List<PlatformFile> selectedFiles = [];
+  bool isLoading = false;
 
   List<Map<String, dynamic>> _categories = [];
   Map<String, dynamic>? _selectedCategory;
@@ -161,7 +163,9 @@ class _AddProductState extends State<AddProduct> {
 
   void _addToFirestore() async {
     bool isDuplicate = await _checkDuplicateProduct();
-
+setState(() {
+        isLoading = true; // Set isLoading to true before signup
+      });
     if (isDuplicate) {
       print('Duplicate product name');
       ToastWidget.show(
@@ -205,6 +209,10 @@ class _AddProductState extends State<AddProduct> {
         );
       });
     }
+
+    setState(() {
+        isLoading = false; // Set isLoading to true before signup
+      });
   }
 
   Future<bool> _checkDuplicateProduct() async {
@@ -327,7 +335,9 @@ class _AddProductState extends State<AddProduct> {
               SizedBox(height: 16),
               // getImageWidget(),
               SizedBox(height: 16),
-              ElevatedButton(
+              isLoading
+                          ? CustomLoader()
+                          :ElevatedButton(
                 onPressed: () {
                   _submitForm();
                 },

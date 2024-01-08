@@ -91,7 +91,15 @@ class _AllProductScreenState extends State<AllProductScreen> {
                     ),
                   ),
                   onPressed: () {
-                    setState(() {});
+                    setState(() {
+                      _categories = _categories;
+                      priceAscending = true;
+                      nameAscending = true;
+                      lowPriceController = TextEditingController(text: '0');
+                      highPriceController =
+                          TextEditingController(text: '1000000');
+                      selectedcategory = 'all';
+                    });
                   },
                   child: Text(
                     "Clear Filters",
@@ -281,6 +289,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                 onItemSelected: (selectedValue) {
                   // Handle the selected value in the parent widget
                   // print('Selected value in parent widget: $selectedValue');
+                  Navigator.pop(context);
                   selectedcategory = selectedValue;
                   print("Selected category is $selectedcategory");
                   _buildQueryStream();
@@ -343,6 +352,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                     options: ['Low to High', 'High To Low'],
                     selectFirstOption: true,
                     onPressed: (selectedValue) {
+                  Navigator.pop(context);
                       print('Selected option: $selectedValue');
                       // You can perform any action with the selected value here
                       if (selectedValue.toString().toLowerCase() ==
@@ -383,6 +393,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
                     options: ['A-Z', 'Z-A'],
                     selectFirstOption: true,
                     onPressed: (selectedValue) {
+                  Navigator.pop(context);
                       print('Selected option: $selectedValue');
                       if (selectedValue.toString().toLowerCase() == 'a-z') {
                         nameAscending = true;
@@ -420,7 +431,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
 
       // Apply category filter
       if (selectedcategory != 'all') {
-        query = query.where('categoryId', isEqualTo: selectedcategory);
+        query = query.where('category_id_fk', isEqualTo: selectedcategory);
       }
 
       // Apply price range filter
@@ -444,11 +455,19 @@ class _AllProductScreenState extends State<AllProductScreen> {
       }
 
       query.snapshots().listen((QuerySnapshot snapshot) {
-    snapshot.docs.forEach((DocumentSnapshot document) {
-      print('Document ID: ${document.id}');
-      print('Data: ${document.data()}');
-    });
-  });
+        snapshot.docs.forEach((DocumentSnapshot document) {
+          print('Document ID: ${document.id}');
+          print('Data: ${document.data()}');
+        });
+      });
+
+      setState(() {
+        _categories = _categories;
+        selectedcategory=selectedcategory;
+        nameAscending=nameAscending;
+        priceAscending=priceAscending;
+        _searchController.text=_searchController.text;
+      });
 
       return query.snapshots();
     } catch (e) {

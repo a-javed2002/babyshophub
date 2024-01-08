@@ -303,7 +303,21 @@ class _OrdersScreenState extends State<OrdersScreen>
                     fontSize: 16,
                   ),
                 ),
-                subtitle: Text('Order ID: ${orderIds[index]}'),
+                subtitle: HighlightedText(
+                  text: 'Order ID: ${orderIds[index]}',
+                  query: searchController.text,
+                  highlightStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                    backgroundColor: Colors.yellow,
+                    fontSize: 16,
+                  ),
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
                 onTap: () {
                   Navigator.push(
                     context,

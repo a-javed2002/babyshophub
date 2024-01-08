@@ -18,7 +18,7 @@ class EditProductDialog extends StatefulWidget {
   final String productStatus;
   final String productPrice;
   final String productQuantity;
-  final List<String> productImageUrl;
+  final List<dynamic> productImageUrl;
 
   EditProductDialog({
     required this.productId,
@@ -37,6 +37,8 @@ class EditProductDialog extends StatefulWidget {
 class _EditProductDialogState extends State<EditProductDialog> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
+  late TextEditingController _priceController;
+  late TextEditingController _quantityController;
   bool temp = false;
   FilePickerResult? result;
   late File _selectedImage;
@@ -47,6 +49,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
     _nameController = TextEditingController(text: widget.productName);
     _descriptionController =
         TextEditingController(text: widget.productDescription);
+    _priceController = TextEditingController(text: widget.productPrice);
+    _quantityController = TextEditingController(text: widget.productQuantity);
   }
 
   @override
@@ -58,102 +62,145 @@ class _EditProductDialogState extends State<EditProductDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          GestureDetector(
-            onTap: () {
-              print("Container tapped!");
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return Dialog(
-                    insetPadding: EdgeInsets.zero,
-                    child: Container(
-                      // width: context.screenWidth,
-                      // height: context.screenHeight,
-                      color: mainLightColor,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              Icons.close,
-                              color: textColor,
+          Container(
+            width: screenWidth - 10,
+            height: screenHeight / 4,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: widget.productImageUrl.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                      right: 8.0), // Adjust spacing between avatars
+                  child: GestureDetector(
+                    onTap: () {
+                      print("Container tapped!");
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            insetPadding: EdgeInsets.zero,
+                            child: Container(
+                              // width: context.screenWidth,
+                              // height: context.screenHeight,
+                              color: mainLightColor,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.close,
+                                      color: Colors.deepPurple,
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      print("Dialog closed");
+                                    },
+                                  ),
+                                  Expanded(
+                                      child: Container(
+                                    child: Image.network(
+                                        widget.productImageUrl[index]),
+                                  )),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      IconButton(
+                                          onPressed: () async {
+                                            await removeProductImageUrl(
+                                                imageUrlToRemove: widget
+                                                    .productImageUrl[index],
+                                                productId: widget.productId);
+                                          },
+                                          icon: Icon(
+                                            Icons.remove,
+                                            color: Colors.red,
+                                            size: screenWidth * 0.06
+                                          )),
+                                      IconButton(
+                                          onPressed: () {
+                                            Navigator.pop(
+                                                context); // Optionally close the pop-up
+                                            showAddImageDialogBox();
+                                          },
+                                          icon: Icon(
+                                            Icons.edit,
+                                            color: Colors.lightBlue,
+                                            size: screenWidth * 0.06
+                                          )),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              print("Dialog closed");
-                            },
+                          );
+                        },
+                      );
+                    },
+                    child: CircleAvatar(
+                      radius: screenWidth * 0.1,
+                      backgroundImage:
+                          NetworkImage(widget.productImageUrl[index]),
+                      backgroundColor: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: mainColor,
+                            width: 2.0,
                           ),
-                          Expanded(
-                              child: Container(
-                            child: Image.network(widget.productImageUrl[0]),
-                          )),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                  onPressed: () async {
-                                    await removeProductImageUrl(
-                                        imageUrlToRemove: widget.productImageUrl[0],
-                                        productId: widget.productId);
-                                  },
-                                  icon: Icon(
-                                    Icons.remove,
-                                    color: Colors.red,
-                                  )),
-                              IconButton(
-                                  onPressed: () {
-                                    Navigator.pop(
-                                        context); // Optionally close the pop-up
-                                    showAddImageDialogBox();
-                                  },
-                                  icon: Icon(
-                                    Icons.edit,
-                                    color: Colors.lightBlue,
-                                  )),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  );
-                },
-              );
-            },
-            child: CircleAvatar(
-              radius: screenWidth * 0.1,
-              backgroundImage: NetworkImage(widget.productImageUrl[0]),
-              backgroundColor: Colors.transparent,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: mainColor,
-                    width: 2.0,
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
           TextField(
+            style: TextStyle(color: Colors.black),
             controller: _nameController,
             decoration: InputDecoration(labelText: "Name"),
           ),
           TextField(
+            style: TextStyle(color: Colors.black),
             controller: _descriptionController,
             decoration: InputDecoration(labelText: "Description"),
+          ),
+          TextField(
+            style: TextStyle(color: Colors.black),
+            controller: _priceController,
+            decoration: InputDecoration(labelText: "Price"),
+          ),
+          TextField(
+            style: TextStyle(color: Colors.black),
+            controller: _quantityController,
+            decoration: InputDecoration(labelText: "Quantity"),
           ),
           // Add other fields or widgets as needed...
         ],
       ),
       actions: <Widget>[
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => Navigator.of(context).pop({
+            'quantity': _quantityController.text,
+            'price': _priceController.text,
+            'name': _nameController.text,
+            'description': _descriptionController.text,
+            'change': '0'
+          }),
           child: Text("Cancel"),
         ),
         TextButton(
           onPressed: () {
             // Save the changes
-            Navigator.of(context).pop(true);
+            Navigator.of(context).pop({
+              'quantity': _quantityController.text,
+              'price': _priceController.text,
+              'name': _nameController.text,
+              'description': _descriptionController.text,
+              'change': '1'
+            });
             setState(() {});
           },
           child: Text("Save"),
@@ -231,7 +278,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
                   // Do something with the imageUrl, e.g., update UI or send to Firestore
                   print('New profile image URL: $imageUrl');
                   await updateProductImage(
-                      newProductImageUrl: imageUrl, productId: widget.productId);
+                      newProductImageUrl: imageUrl,
+                      productId: widget.productId);
                 }
 
                 // Close the dialog
@@ -269,31 +317,31 @@ class _EditProductDialogState extends State<EditProductDialog> {
   }
 
   Future<void> updateProductImage({
-  required String newProductImageUrl,
-  required String productId,
-}) async {
-  try {
-    // Update the imageUrls field in the "products" collection
-    await FirebaseFirestore.instance
-        .collection('products')
-        .doc(productId)
-        .update({
-      'imageUrls': FieldValue.arrayUnion([newProductImageUrl]),
-    });
+    required String newProductImageUrl,
+    required String productId,
+  }) async {
+    try {
+      // Update the imageUrls field in the "products" collection
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .update({
+        'imageUrls': FieldValue.arrayUnion([newProductImageUrl]),
+      });
 
-    print('ProductImage updated successfully.');
-    // Optional: Display a success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('ProductImage updated successfully.'),
-      ),
-    );
-    setState(() {});
-  } catch (e) {
-    // Handle errors
-    print('Error updating ProductImage: $e');
+      print('ProductImage updated successfully.');
+      // Optional: Display a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ProductImage updated successfully.'),
+        ),
+      );
+      setState(() {});
+    } catch (e) {
+      // Handle errors
+      print('Error updating ProductImage: $e');
+    }
   }
-}
 
   Future<String?> _uploadImageToStorage() async {
     try {
@@ -326,37 +374,37 @@ class _EditProductDialogState extends State<EditProductDialog> {
   }
 
   Future<void> removeProductImageUrl({
-  required String imageUrlToRemove,
-  required String productId,
-}) async {
-  try {
-    // Remove the imageUrlToRemove from the imageUrls field in the "products" collection
-    await FirebaseFirestore.instance
-        .collection('products')
-        .doc(productId)
-        .update({
-      'imageUrls': FieldValue.arrayRemove([imageUrlToRemove],
-      ),
-    });
+    required String imageUrlToRemove,
+    required String productId,
+  }) async {
+    try {
+      // Remove the imageUrlToRemove from the imageUrls field in the "products" collection
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .update({
+        'imageUrls': FieldValue.arrayRemove(
+          [imageUrlToRemove],
+        ),
+      });
 
-    // Remove the image from Firestore Storage
-    final storageReference =
-        FirebaseStorage.instance.ref().child('product_images/$productId');
+      // Remove the image from Firestore Storage
+      final storageReference =
+          FirebaseStorage.instance.ref().child('product_images/$productId');
 
-    await storageReference.child(imageUrlToRemove).delete();
+      await storageReference.child(imageUrlToRemove).delete();
 
-    print('ProductImage removed successfully.');
-    // Optional: Display a success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('ProductImage removed successfully.'),
-      ),
-    );
-    setState(() {});
-  } catch (e) {
-    // Handle errors
-    print('Error removing ProductImage: $e');
+      print('ProductImage removed successfully.');
+      // Optional: Display a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ProductImage removed successfully.'),
+        ),
+      );
+      setState(() {});
+    } catch (e) {
+      // Handle errors
+      print('Error removing ProductImage: $e');
+    }
   }
-}
-
 }

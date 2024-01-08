@@ -5,7 +5,7 @@ class ProductDetailsPopup extends StatefulWidget {
   final String productId;
   final String productName;
   final double productPrice;
-  final List productImage;
+  final String productImage;
 
   ProductDetailsPopup({
     required this.productId,
@@ -28,7 +28,7 @@ class _ProductDetailsPopupState extends State<ProductDetailsPopup> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.network(
-            widget.productImage[0],
+            widget.productImage,
             width: 120,
             height: 120,
           ),

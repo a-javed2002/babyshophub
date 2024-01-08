@@ -218,7 +218,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: 'All Orders'),
+            Tab(text: 'Pending Orders'),
             Tab(text: 'Completed Orders'),
           ],
         ),
@@ -299,7 +299,22 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                     fontSize: 16,
                   ),
                 ),
-                subtitle: Text('Order ID: ${orderIds[index]}'),
+                subtitle: HighlightedText(
+                  text: 'Order ID: ${orderIds[index]}',
+                  query: searchController.text,
+                  highlightStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                    backgroundColor: Colors.yellow,
+                    fontSize: 16,
+                  ),
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+                // subtitle: Text('Order ID: ${orderIds[index]}'),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -317,35 +332,42 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
   }
 
   Future<List<String>> getOrderIds({bool completed = false}) async {
-    try {
-      final User? user = _auth.currentUser;
+  try {
+    final User? user = _auth.currentUser;
 
-      if (user != null) {
-        final CollectionReference users = FirebaseFirestore.instance.collection('users');
+    if (user != null) {
+      final CollectionReference orders = FirebaseFirestore.instance.collection('orders');
 
-        // Fetch user's orderIds
-        DocumentSnapshot userSnapshot = await users.doc(user.uid).get();
+      QuerySnapshot ordersSnapshot = await orders
+          .where('userId', isEqualTo: user.uid)
+          .get();
 
-        if (userSnapshot.exists) {
-          List<String> orderIds = List<String>.from(userSnapshot['orders']);
+      List<String> orderIds = [];
 
-          if (completed) {
-            // Filter completed orders based on status (you may need to adjust this logic)
-            orderIds = orderIds
-                .where((orderId) => orderId.contains('delivered'))
-                .toList();
+      ordersSnapshot.docs.forEach((orderDoc) {
+        String orderId = orderDoc.id;
+        String orderStatus = orderDoc['status'] ?? '';
+
+        if (completed) {
+          // Check if the order is completed (you may need to adjust this logic)
+          if (orderStatus.toLowerCase() == 'delivered') {
+            orderIds.add(orderId);
           }
-
-          return orderIds;
+        } else {
+          // Add all orders without checking status
+          orderIds.add(orderId);
         }
-      }
+      });
 
-      return [];
-    } catch (e) {
-      print('Error fetching orderIds: $e');
-      return [];
+      return orderIds;
     }
+
+    return [];
+  } catch (e) {
+    print('Error fetching orderIds: $e');
+    return [];
   }
+}
 
   void filterOrders(String searchTerm) async {
     List<String> orderIds = await getOrderIds();
